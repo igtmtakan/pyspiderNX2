@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpider Dashboard</title>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <style>
+        /* ダッシュボード用のスタイル */
+        .dashboard-card {
+            transition: all 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+        .metric-card {
+            text-align: center;
+            padding: 16px;
+        }
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary" density="compact">
+                <v-app-bar-title>PySpider Dashboard</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" href="/index-v2">
+                    <v-icon>mdi-view-list</v-icon> Projects
+                </v-btn>
+                <v-btn variant="text" href="/debug">
+                    <v-icon>mdi-code-tags</v-icon> Debug
+                </v-btn>
+            </v-app-bar>
+
+            <v-main>
+                <v-container fluid>
+                    <!-- Summary Cards -->
+                    <v-row>
+                        <v-col cols="12" md="3">
+                            <v-card class="dashboard-card metric-card">
+                                <div class="metric-value" :style="{color: '#4CAF50'}">
+                                    ${ totalTasks }
+                                </div>
+                                <div class="metric-label">
+                                    Total Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-card class="dashboard-card metric-card">
+                                <div class="metric-value" :style="{color: '#2196F3'}">
+                                    ${ totalPending }
+                                </div>
+                                <div class="metric-label">
+                                    Pending Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-card class="dashboard-card metric-card">
+                                <div class="metric-value" :style="{color: '#4CAF50'}">
+                                    ${ totalSuccess }
+                                </div>
+                                <div class="metric-label">
+                                    Successful Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-card class="dashboard-card metric-card">
+                                <div class="metric-value" :style="{color: '#F44336'}">
+                                    ${ totalError }
+                                </div>
+                                <div class="metric-label">
+                                    Failed Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+
+
+                </v-container>
+            </v-main>
+
+            <!-- Snackbar for notifications -->
+            <v-snackbar v-model="snackbar.show" :color="snackbar.color" location="top" timeout="3000">
+                ${ snackbar.text }
+                <template v-slot:actions>
+                    <v-btn variant="text" @click="snackbar.show = false">Close</v-btn>
+                </template>
+            </v-snackbar>
+        </v-app>
+    </div>
+
+    <script>
+        window.projects = {{ projects|safe }};
+        console.log('Projects data:', window.projects);
+
+        const { createApp } = Vue;
+        const vuetify = Vuetify.createVuetify();
+
+        // Vue.jsのデリミタを変更
+        const app = createApp({
+            delimiters: ['${', '}'],
+            data() {
+                return {
+                    projects: window.projects || [],
+                    projectCounters: {},
+                    counterInterval: null,
+                    snackbar: {
+                        show: false,
+                        text: '',
+                        color: 'success'
+                    }
+                }
+            },
+            computed: {
+                totalTasks() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        const counter = this.getProjectCounter(projectName);
+                        if (counter) {
+                            total += counter.task || 0;
+                        }
+                    }
+                    return total;
+                },
+                totalPending() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        total += this.getProgressCount(projectName, 'pending');
+                    }
+                    return total;
+                },
+                totalSuccess() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        total += this.getProgressCount(projectName, 'success');
+                    }
+                    return total;
+                },
+                totalError() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        total += this.getProgressCount(projectName, 'failed');
+                    }
+                    return total;
+                }
+            },
+            mounted() {
+                // 初期データの取得
+                this.fetchProjects();
+                this.fetchCounterData();
+
+                // 定期的なデータ更新
+                this.counterInterval = setInterval(() => {
+                    this.fetchCounterData();
+                }, 5000);
+            },
+            beforeUnmount() {
+                // インターバルのクリア
+                if (this.counterInterval) clearInterval(this.counterInterval);
+            },
+            methods: {
+                // プロジェクト一覧を取得
+                fetchProjects() {
+                    fetch('/index-v2/projects')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.projects = data;
+                            console.log('Projects data:', data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching projects:', error);
+                        });
+                },
+
+                // カウンターデータを取得
+                fetchCounterData() {
+                    fetch('/counter')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.projectCounters = data;
+                            console.log('Counter data:', data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching counter data:', error);
+                        });
+                },
+
+                // プロジェクトのカウンターデータを取得
+                getProjectCounter(projectName) {
+                    if (!this.projectCounters[projectName]) {
+                        return null;
+                    }
+                    return this.projectCounters[projectName]['all'] || null;
+                },
+
+                // プログレスバーのカウントを取得
+                getProgressCount(projectName, type) {
+                    const counter = this.getProjectCounter(projectName);
+                    if (!counter) return 0;
+                    return counter[type] || 0;
+                },
+
+                // スナックバーを表示
+                showSnackbar(text, color = 'success') {
+                    this.snackbar.text = text;
+                    this.snackbar.color = color;
+                    this.snackbar.show = true;
+                }
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

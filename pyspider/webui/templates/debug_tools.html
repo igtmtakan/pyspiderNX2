@@ -1,0 +1,699 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='debug_tools/css/debug_tools.css') }}">
+<script src="{{ url_for('static', filename='debug_tools/js/debug_tools.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container" id="debug-tools-container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1>PySpider Debug Tools</h1>
+      <ul class="nav nav-tabs" id="debug-tools-tabs">
+        <li class="active"><a href="#interactive-debugger" data-toggle="tab">Interactive Debugger</a></li>
+        <li><a href="#request-inspector" data-toggle="tab">Request Inspector</a></li>
+        <li><a href="#response-inspector" data-toggle="tab">Response Inspector</a></li>
+        <li><a href="#performance-profiler" data-toggle="tab">Performance Profiler</a></li>
+      </ul>
+      
+      <div class="tab-content">
+        <!-- Interactive Debugger -->
+        <div class="tab-pane active" id="interactive-debugger">
+          <div class="row">
+            <div class="col-md-12">
+              <h2>Interactive Debugger</h2>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="debugger-start">Start Debugger</button>
+                    <button class="btn btn-danger" id="debugger-stop" disabled>Stop Debugger</button>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-default" id="debugger-step-into" disabled>Step Into</button>
+                    <button class="btn btn-default" id="debugger-step-over" disabled>Step Over</button>
+                    <button class="btn btn-default" id="debugger-step-out" disabled>Step Out</button>
+                    <button class="btn btn-default" id="debugger-continue" disabled>Continue</button>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div class="row">
+                    <div class="col-md-8">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Source Code</h3>
+                        </div>
+                        <div class="panel-body">
+                          <div id="debugger-source-code">
+                            <pre><code>No code loaded</code></pre>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Variables</h3>
+                        </div>
+                        <div class="panel-body">
+                          <ul class="nav nav-tabs" id="variables-tabs">
+                            <li class="active"><a href="#local-variables" data-toggle="tab">Local</a></li>
+                            <li><a href="#global-variables" data-toggle="tab">Global</a></li>
+                          </ul>
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="local-variables">
+                              <table class="table table-striped table-condensed">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="local-variables-table">
+                                  <tr>
+                                    <td colspan="2">No variables</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="global-variables">
+                              <table class="table table-striped table-condensed">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="global-variables-table">
+                                  <tr>
+                                    <td colspan="2">No variables</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Call Stack</h3>
+                        </div>
+                        <div class="panel-body">
+                          <table class="table table-striped table-condensed">
+                            <thead>
+                              <tr>
+                                <th>Function</th>
+                                <th>File</th>
+                                <th>Line</th>
+                              </tr>
+                            </thead>
+                            <tbody id="call-stack-table">
+                              <tr>
+                                <td colspan="3">No call stack</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Console</h3>
+                        </div>
+                        <div class="panel-body">
+                          <div id="debugger-console">
+                            <pre id="debugger-output"></pre>
+                            <div class="input-group">
+                              <input type="text" class="form-control" id="debugger-input" placeholder="Enter expression to evaluate">
+                              <span class="input-group-btn">
+                                <button class="btn btn-primary" id="debugger-evaluate">Evaluate</button>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title">Breakpoints</h3>
+                </div>
+                <div class="panel-body">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="breakpoint-file" placeholder="File path">
+                        <input type="number" class="form-control" id="breakpoint-line" placeholder="Line number">
+                        <input type="text" class="form-control" id="breakpoint-condition" placeholder="Condition (optional)">
+                        <span class="input-group-btn">
+                          <button class="btn btn-primary" id="breakpoint-add">Add Breakpoint</button>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <table class="table table-striped">
+                        <thead>
+                          <tr>
+                            <th>File</th>
+                            <th>Line</th>
+                            <th>Condition</th>
+                            <th>Hits</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody id="breakpoints-table">
+                          <tr>
+                            <td colspan="5">No breakpoints</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Request Inspector -->
+        <div class="tab-pane" id="request-inspector">
+          <div class="row">
+            <div class="col-md-12">
+              <h2>Request Inspector</h2>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="request-refresh">Refresh</button>
+                    <button class="btn btn-danger" id="request-clear">Clear All</button>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Requests</h3>
+                        </div>
+                        <div class="panel-body">
+                          <div class="list-group" id="request-list">
+                            <a href="#" class="list-group-item">No requests</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-8">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Request Details</h3>
+                        </div>
+                        <div class="panel-body">
+                          <ul class="nav nav-tabs" id="request-details-tabs">
+                            <li class="active"><a href="#request-overview" data-toggle="tab">Overview</a></li>
+                            <li><a href="#request-headers" data-toggle="tab">Headers</a></li>
+                            <li><a href="#request-cookies" data-toggle="tab">Cookies</a></li>
+                            <li><a href="#request-body" data-toggle="tab">Body</a></li>
+                          </ul>
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="request-overview">
+                              <table class="table table-striped">
+                                <tbody>
+                                  <tr>
+                                    <th>URL</th>
+                                    <td id="request-url"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Method</th>
+                                    <td id="request-method"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Status</th>
+                                    <td id="request-status"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Time</th>
+                                    <td id="request-time"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Size</th>
+                                    <td id="request-size"></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="request-headers">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="request-headers-table">
+                                  <tr>
+                                    <td colspan="2">No headers</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="request-cookies">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="request-cookies-table">
+                                  <tr>
+                                    <td colspan="2">No cookies</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="request-body">
+                              <pre id="request-body-content"></pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Response Details</h3>
+                        </div>
+                        <div class="panel-body">
+                          <ul class="nav nav-tabs" id="response-details-tabs">
+                            <li class="active"><a href="#response-overview" data-toggle="tab">Overview</a></li>
+                            <li><a href="#response-headers" data-toggle="tab">Headers</a></li>
+                            <li><a href="#response-cookies" data-toggle="tab">Cookies</a></li>
+                            <li><a href="#response-body" data-toggle="tab">Body</a></li>
+                          </ul>
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="response-overview">
+                              <table class="table table-striped">
+                                <tbody>
+                                  <tr>
+                                    <th>Status</th>
+                                    <td id="response-status"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Time</th>
+                                    <td id="response-time"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Size</th>
+                                    <td id="response-size"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Content Type</th>
+                                    <td id="response-content-type"></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="response-headers">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="response-headers-table">
+                                  <tr>
+                                    <td colspan="2">No headers</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="response-cookies">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="response-cookies-table">
+                                  <tr>
+                                    <td colspan="2">No cookies</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="response-body">
+                              <pre id="response-body-content"></pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Response Inspector -->
+        <div class="tab-pane" id="response-inspector">
+          <div class="row">
+            <div class="col-md-12">
+              <h2>Response Inspector</h2>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="response-refresh">Refresh</button>
+                    <button class="btn btn-danger" id="response-clear">Clear All</button>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Responses</h3>
+                        </div>
+                        <div class="panel-body">
+                          <div class="list-group" id="response-list">
+                            <a href="#" class="list-group-item">No responses</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-8">
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Response Details</h3>
+                        </div>
+                        <div class="panel-body">
+                          <ul class="nav nav-tabs" id="response-inspector-tabs">
+                            <li class="active"><a href="#response-inspector-overview" data-toggle="tab">Overview</a></li>
+                            <li><a href="#response-inspector-headers" data-toggle="tab">Headers</a></li>
+                            <li><a href="#response-inspector-cookies" data-toggle="tab">Cookies</a></li>
+                            <li><a href="#response-inspector-body" data-toggle="tab">Body</a></li>
+                            <li><a href="#response-inspector-links" data-toggle="tab">Links</a></li>
+                          </ul>
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="response-inspector-overview">
+                              <table class="table table-striped">
+                                <tbody>
+                                  <tr>
+                                    <th>URL</th>
+                                    <td id="response-inspector-url"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Status</th>
+                                    <td id="response-inspector-status"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Time</th>
+                                    <td id="response-inspector-time"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Size</th>
+                                    <td id="response-inspector-size"></td>
+                                  </tr>
+                                  <tr>
+                                    <th>Content Type</th>
+                                    <td id="response-inspector-content-type"></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="response-inspector-headers">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="response-inspector-headers-table">
+                                  <tr>
+                                    <td colspan="2">No headers</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="response-inspector-cookies">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                    <th>Attributes</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="response-inspector-cookies-table">
+                                  <tr>
+                                    <td colspan="3">No cookies</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="tab-pane" id="response-inspector-body">
+                              <div class="btn-group">
+                                <button class="btn btn-default" id="response-inspector-body-raw">Raw</button>
+                                <button class="btn btn-default" id="response-inspector-body-formatted">Formatted</button>
+                                <button class="btn btn-default" id="response-inspector-body-preview">Preview</button>
+                              </div>
+                              <div id="response-inspector-body-container">
+                                <pre id="response-inspector-body-content"></pre>
+                              </div>
+                            </div>
+                            <div class="tab-pane" id="response-inspector-links">
+                              <table class="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>URL</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="response-inspector-links-table">
+                                  <tr>
+                                    <td colspan="2">No links</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h3 class="panel-title">Data Extraction</h3>
+                        </div>
+                        <div class="panel-body">
+                          <div class="row">
+                            <div class="col-md-12">
+                              <div class="input-group">
+                                <select class="form-control" id="extractor-type">
+                                  <option value="regex">Regex</option>
+                                  <option value="xpath">XPath</option>
+                                  <option value="css">CSS</option>
+                                  <option value="json">JSON Path</option>
+                                </select>
+                                <input type="text" class="form-control" id="extractor-pattern" placeholder="Pattern">
+                                <span class="input-group-btn">
+                                  <button class="btn btn-primary" id="extractor-extract">Extract</button>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-12">
+                              <pre id="extractor-results"></pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Performance Profiler -->
+        <div class="tab-pane" id="performance-profiler">
+          <div class="row">
+            <div class="col-md-12">
+              <h2>Performance Profiler</h2>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="profiler-start-cpu">Start CPU Profiling</button>
+                    <button class="btn btn-danger" id="profiler-stop-cpu" disabled>Stop CPU Profiling</button>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="profiler-start-memory">Start Memory Tracking</button>
+                    <button class="btn btn-danger" id="profiler-stop-memory" disabled>Stop Memory Tracking</button>
+                    <button class="btn btn-default" id="profiler-snapshot">Take Memory Snapshot</button>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-default" id="profiler-gc">Collect Garbage</button>
+                    <button class="btn btn-default" id="profiler-report">Generate Report</button>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <ul class="nav nav-tabs" id="profiler-tabs">
+                    <li class="active"><a href="#profiler-cpu" data-toggle="tab">CPU Profiling</a></li>
+                    <li><a href="#profiler-memory" data-toggle="tab">Memory Tracking</a></li>
+                    <li><a href="#profiler-timing" data-toggle="tab">Timing</a></li>
+                    <li><a href="#profiler-functions" data-toggle="tab">Function Stats</a></li>
+                  </ul>
+                  <div class="tab-content">
+                    <div class="tab-pane active" id="profiler-cpu">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h3>CPU Profiling Results</h3>
+                          <pre id="profiler-cpu-results">No CPU profiling results</pre>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h3>Top Functions</h3>
+                          <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th>Function</th>
+                                <th>File</th>
+                                <th>Line</th>
+                                <th>Calls</th>
+                                <th>Total Time</th>
+                                <th>Cumulative Time</th>
+                              </tr>
+                            </thead>
+                            <tbody id="profiler-cpu-functions">
+                              <tr>
+                                <td colspan="6">No functions</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane" id="profiler-memory">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h3>Memory Snapshots</h3>
+                          <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th>Label</th>
+                                <th>Time</th>
+                                <th>Total Size</th>
+                                <th>RSS</th>
+                                <th>VMS</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody id="profiler-memory-snapshots">
+                              <tr>
+                                <td colspan="6">No snapshots</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h3>Top Memory Consumers</h3>
+                          <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th>File</th>
+                                <th>Line</th>
+                                <th>Size</th>
+                                <th>Count</th>
+                              </tr>
+                            </thead>
+                            <tbody id="profiler-memory-top">
+                              <tr>
+                                <td colspan="4">No memory consumers</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane" id="profiler-timing">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h3>Timing Statistics</h3>
+                          <div class="input-group">
+                            <input type="text" class="form-control" id="timing-name" placeholder="Section name">
+                            <span class="input-group-btn">
+                              <button class="btn btn-primary" id="timing-start">Start Timing</button>
+                              <button class="btn btn-danger" id="timing-stop">Stop Timing</button>
+                              <button class="btn btn-default" id="timing-reset">Reset</button>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Elapsed Time</th>
+                                <th>Calls</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody id="profiler-timing-stats">
+                              <tr>
+                                <td colspan="5">No timing statistics</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane" id="profiler-functions">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h3>Function Statistics</h3>
+                          <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th>Function</th>
+                                <th>Calls</th>
+                                <th>Total Time</th>
+                                <th>Min Time</th>
+                                <th>Max Time</th>
+                                <th>Avg Time</th>
+                                <th>Last Call Time</th>
+                              </tr>
+                            </thead>
+                            <tbody id="profiler-function-stats">
+                              <tr>
+                                <td colspan="7">No function statistics</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

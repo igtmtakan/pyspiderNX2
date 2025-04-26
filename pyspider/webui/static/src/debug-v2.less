@@ -1,0 +1,138 @@
+/* debug-v2.less - Modern UI styles for PySpider debugger */
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.fill-height {
+  height: 100%;
+}
+
+/* CodeMirror customizations */
+.CodeMirror {
+  height: 100%;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Task editor height */
+#task-editor .CodeMirror {
+  height: 200px;
+}
+
+/* Python editor height */
+#python-editor .CodeMirror {
+  height: 100%;
+}
+
+/* Follow details editor height */
+#follow-details .CodeMirror {
+  height: 400px;
+}
+
+/* Iframe container */
+.iframe-container {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+#iframe-box {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* Logs content */
+.logs-content {
+  height: 100%;
+  overflow: auto;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.logs-content pre {
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Follows list */
+.follows-list {
+  height: 100%;
+  overflow: auto;
+}
+
+.follow-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Messages list */
+.messages-list {
+  height: 100%;
+  overflow: auto;
+}
+
+.message-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* HTML content */
+#html-content {
+  padding: 0;
+  overflow: auto;
+}
+
+#html-content pre {
+  margin: 0;
+  padding: 8px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Dark mode adjustments */
+.v-theme--dark {
+  .follow-item, .message-item {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Tab content height */
+.v-window {
+  height: calc(100% - 48px);
+}
+
+.v-window-item {
+  height: 100%;
+}
+
+/* CSS Selector helper */
+.css-selector-helper {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.v-theme--dark .css-selector-helper {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .v-row {
+    flex-direction: column;
+  }
+  
+  .v-col {
+    flex: 0 0 auto;
+    height: 50%;
+  }
+}

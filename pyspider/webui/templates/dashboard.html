@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PySpider Dashboard</title>
+  <link rel="icon" href="{{ url_for('static', filename='pyspider.png') }}" type="image/x-icon">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='index.min.css') }}">
+  <style>
+    .dashboard-container {
+      padding: 20px;
+    }
+    .chart-container {
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+      margin-bottom: 20px;
+      padding: 15px;
+    }
+    .chart-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .chart {
+      height: 300px;
+    }
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .dashboard-title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .dashboard-controls {
+      display: flex;
+      gap: 10px;
+    }
+    .project-selector {
+      min-width: 200px;
+    }
+    .time-range-selector {
+      min-width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>
+        <a href="/">PySpider</a>
+        <small>Dashboard</small>
+      </h1>
+    </div>
+  </header>
+  
+  <section class="dashboard-container">
+    <div class="dashboard-header">
+      <div class="dashboard-title">Performance Dashboard</div>
+      <div class="dashboard-controls">
+        <select id="project-selector" class="form-control project-selector">
+          <option value="all">All Projects</option>
+          {% for project in projects %}
+          <option value="{{ project.name }}">{{ project.name }}</option>
+          {% endfor %}
+        </select>
+        <select id="time-range-selector" class="form-control time-range-selector">
+          <option value="300">Last 5 minutes</option>
+          <option value="900">Last 15 minutes</option>
+          <option value="1800">Last 30 minutes</option>
+          <option value="3600" selected>Last 1 hour</option>
+          <option value="10800">Last 3 hours</option>
+          <option value="21600">Last 6 hours</option>
+          <option value="43200">Last 12 hours</option>
+          <option value="86400">Last 24 hours</option>
+        </select>
+        <button id="refresh-btn" class="btn btn-primary">
+          <i class="fa fa-refresh"></i> Refresh
+        </button>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Success Rate (%)</div>
+          <div id="success-rate-chart" class="chart"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Total Processing Time (seconds)</div>
+          <div id="total-time-chart" class="chart"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Fetch Time (seconds)</div>
+          <div id="fetch-time-chart" class="chart"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Process Time (seconds)</div>
+          <div id="process-time-chart" class="chart"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- jQuery 3.7.0 -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+  <!-- Bootstrap 3.4.1 JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.40.0/dist/apexcharts.min.js"></script>
+  
+  <script>
+    // Chart instances
+    let successRateChart, totalTimeChart, fetchTimeChart, processTimeChart;
+    
+    // Chart colors
+    const colors = {
+      success: '#28a745',
+      error: '#dc3545',
+      warning: '#ffc107',
+      info: '#17a2b8',
+      primary: '#007bff',
+      secondary: '#6c757d'
+    };
+    
+    // Initialize charts
+    function initCharts() {
+      // Success Rate Chart
+      const successRateOptions = {
+        series: [],
+        chart: {
+          id: 'success-rate-chart',
+          type: 'line',
+          height: 300,
+          animations: {
+            enabled: true,
+            easing: 'linear',
+            dynamicAnimation: {
+              speed: 1000
+            }
+          },
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: true
+          }
+        },
+        colors: [colors.success, colors.primary, colors.info, colors.warning, colors.secondary],
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth',
+          width: 2
+        },
+        title: {
+          text: 'Success Rate (%)',
+          align: 'left'
+        },
+        markers: {
+          size: 0
+        },
+        xaxis: {
+          type: 'datetime',
+          labels: {
+            datetimeUTC: false
+          }
+        },
+        yaxis: {
+          min: 0,
+          max: 100,
+          labels: {
+            formatter: function(val) {
+              return val.toFixed(0) + '%';
+            }
+          }
+        },
+        legend: {
+          show: true,
+          position: 'top'
+        },
+        tooltip: {
+          x: {
+            format: 'yyyy-MM-dd HH:mm:ss'
+          }
+        }
+      };
+      
+      // Total Time Chart
+      const totalTimeOptions = {
+        series: [],
+        chart: {
+          id: 'total-time-chart',
+          type: 'line',
+          height: 300,
+          animations: {
+            enabled: true,
+            easing: 'linear',
+            dynamicAnimation: {
+              speed: 1000
+            }
+          },
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: true
+          }
+        },
+        colors: [colors.primary, colors.success, colors.info, colors.warning, colors.secondary],
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth',
+          width: 2
+        },
+        title: {
+          text: 'Total Processing Time (seconds)',
+          align: 'left'
+        },
+        markers: {
+          size: 0
+        },
+        xaxis: {
+          type: 'datetime',
+          labels: {
+            datetimeUTC: false
+          }
+        },
+        yaxis: {
+          labels: {
+            formatter: function(val) {
+              return val.toFixed(3) + 's';
+            }
+          }
+        },
+        legend: {
+          show: true,
+          position: 'top'
+        },
+        tooltip: {
+          x: {
+            format: 'yyyy-MM-dd HH:mm:ss'
+          },
+          y: {
+            formatter: function(val) {
+              return val.toFixed(3) + ' seconds';
+            }
+          }
+        }
+      };
+      
+      // Fetch Time Chart
+      const fetchTimeOptions = {
+        series: [],
+        chart: {
+          id: 'fetch-time-chart',
+          type: 'line',
+          height: 300,
+          animations: {
+            enabled: true,
+            easing: 'linear',
+            dynamicAnimation: {
+              speed: 1000
+            }
+          },
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: true
+          }
+        },
+        colors: [colors.info, colors.primary, colors.success, colors.warning, colors.secondary],
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth',
+          width: 2
+        },
+        title: {
+          text: 'Fetch Time (seconds)',
+          align: 'left'
+        },
+        markers: {
+          size: 0
+        },
+        xaxis: {
+          type: 'datetime',
+          labels: {
+            datetimeUTC: false
+          }
+        },
+        yaxis: {
+          labels: {
+            formatter: function(val) {
+              return val.toFixed(3) + 's';
+            }
+          }
+        },
+        legend: {
+          show: true,
+          position: 'top'
+        },
+        tooltip: {
+          x: {
+            format: 'yyyy-MM-dd HH:mm:ss'
+          },
+          y: {
+            formatter: function(val) {
+              return val.toFixed(3) + ' seconds';
+            }
+          }
+        }
+      };
+      
+      // Process Time Chart
+      const processTimeOptions = {
+        series: [],
+        chart: {
+          id: 'process-time-chart',
+          type: 'line',
+          height: 300,
+          animations: {
+            enabled: true,
+            easing: 'linear',
+            dynamicAnimation: {
+              speed: 1000
+            }
+          },
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: true
+          }
+        },
+        colors: [colors.warning, colors.info, colors.primary, colors.success, colors.secondary],
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth',
+          width: 2
+        },
+        title: {
+          text: 'Process Time (seconds)',
+          align: 'left'
+        },
+        markers: {
+          size: 0
+        },
+        xaxis: {
+          type: 'datetime',
+          labels: {
+            datetimeUTC: false
+          }
+        },
+        yaxis: {
+          labels: {
+            formatter: function(val) {
+              return val.toFixed(3) + 's';
+            }
+          }
+        },
+        legend: {
+          show: true,
+          position: 'top'
+        },
+        tooltip: {
+          x: {
+            format: 'yyyy-MM-dd HH:mm:ss'
+          },
+          y: {
+            formatter: function(val) {
+              return val.toFixed(3) + ' seconds';
+            }
+          }
+        }
+      };
+      
+      // Initialize charts
+      successRateChart = new ApexCharts(document.querySelector('#success-rate-chart'), successRateOptions);
+      totalTimeChart = new ApexCharts(document.querySelector('#total-time-chart'), totalTimeOptions);
+      fetchTimeChart = new ApexCharts(document.querySelector('#fetch-time-chart'), fetchTimeOptions);
+      processTimeChart = new ApexCharts(document.querySelector('#process-time-chart'), processTimeOptions);
+      
+      successRateChart.render();
+      totalTimeChart.render();
+      fetchTimeChart.render();
+      processTimeChart.render();
+    }
+    
+    // Update charts with new data
+    function updateCharts() {
+      const projectSelector = document.getElementById('project-selector');
+      const timeRangeSelector = document.getElementById('time-range-selector');
+      
+      const selectedProject = projectSelector.value;
+      const selectedTimeRange = parseInt(timeRangeSelector.value);
+      
+      // Calculate start time based on selected time range
+      const endTime = Math.floor(Date.now() / 1000);
+      const startTime = endTime - selectedTimeRange;
+      
+      // Build API URL
+      let apiUrl = '/api/time_series?start_time=' + startTime + '&end_time=' + endTime;
+      if (selectedProject !== 'all') {
+        apiUrl += '&project=' + selectedProject;
+      }
+      
+      // Fetch data from API
+      $.getJSON(apiUrl, function(data) {
+        // Process data for charts
+        const successRateSeries = [];
+        const totalTimeSeries = [];
+        const fetchTimeSeries = [];
+        const processTimeSeries = [];
+        
+        // Process data for each project
+        for (const projectName in data) {
+          const projectData = data[projectName];
+          
+          // Success Rate
+          if (projectData.success_rate) {
+            const successRateData = projectData.success_rate.map(point => ({
+              x: point.timestamp * 1000, // Convert to milliseconds for ApexCharts
+              y: point.value
+            }));
+            
+            successRateSeries.push({
+              name: projectName,
+              data: successRateData
+            });
+          }
+          
+          // Total Time
+          if (projectData.total_time) {
+            const totalTimeData = projectData.total_time.map(point => ({
+              x: point.timestamp * 1000,
+              y: point.value
+            }));
+            
+            totalTimeSeries.push({
+              name: projectName,
+              data: totalTimeData
+            });
+          }
+          
+          // Fetch Time
+          if (projectData.fetch_time) {
+            const fetchTimeData = projectData.fetch_time.map(point => ({
+              x: point.timestamp * 1000,
+              y: point.value
+            }));
+            
+            fetchTimeSeries.push({
+              name: projectName,
+              data: fetchTimeData
+            });
+          }
+          
+          // Process Time
+          if (projectData.process_time) {
+            const processTimeData = projectData.process_time.map(point => ({
+              x: point.timestamp * 1000,
+              y: point.value
+            }));
+            
+            processTimeSeries.push({
+              name: projectName,
+              data: processTimeData
+            });
+          }
+        }
+        
+        // Update charts
+        successRateChart.updateSeries(successRateSeries);
+        totalTimeChart.updateSeries(totalTimeSeries);
+        fetchTimeChart.updateSeries(fetchTimeSeries);
+        processTimeChart.updateSeries(processTimeSeries);
+      });
+    }
+    
+    // Initialize on document ready
+    $(document).ready(function() {
+      // Initialize charts
+      initCharts();
+      
+      // Initial update
+      updateCharts();
+      
+      // Set up event listeners
+      $('#project-selector').on('change', updateCharts);
+      $('#time-range-selector').on('change', updateCharts);
+      $('#refresh-btn').on('click', updateCharts);
+      
+      // Set up periodic updates (every 30 seconds)
+      setInterval(updateCharts, 30000);
+    });
+  </script>
+</body>
+</html>

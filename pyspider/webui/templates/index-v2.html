@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpider Dashboard Classic Mode</title>
+
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.3.67/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .project-card {
+            margin-bottom: 16px;
+        }
+        .status-running {
+            color: #4caf50;
+        }
+        .status-paused {
+            color: #ff9800;
+        }
+        .status-stopped {
+            color: #f44336;
+        }
+
+        /* プログレスバーのスタイル */
+        .progress-container {
+            margin-top: 8px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .progress-bars {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .progress-bar {
+            height: 8px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .progress-segment {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .progress-pending {
+            background-color: #2196F3; /* 青 */
+        }
+        .progress-active {
+            background-color: #FF9800; /* オレンジ */
+        }
+        .progress-success {
+            background-color: #4CAF50; /* 緑 */
+        }
+        .progress-error {
+            background-color: #F44336; /* 赤 */
+        }
+        .progress-text {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: rgba(0, 0, 0, 0.7);
+        }
+        .progress-label {
+            font-size: 0.8rem;
+            color: rgba(0, 0, 0, 0.7);
+            margin-right: 8px;
+            width: 70px;
+            text-align: right;
+            font-weight: 500;
+        }
+        .progress-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        /* 時間範囲タブのスタイル */
+        .time-range-tabs {
+            margin-bottom: 8px;
+        }
+        .time-range-tabs .btn-group {
+            width: 100%;
+            display: flex;
+        }
+        .time-range-tabs .btn {
+            flex: 1;
+            font-size: 0.75rem;
+            padding: 2px 4px;
+        }
+        .time-range-tabs .btn.active {
+            background-color: #1976D2;
+            color: white;
+            border-color: #1976D2;
+        }
+        .time-range-label {
+            font-weight: 500;
+            color: #1976D2;
+            margin-right: 4px;
+        }
+
+        /* 統計情報カードのスタイル */
+        .metric-card {
+            text-align: center;
+            padding: 20px;
+            transition: all 0.3s;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05) !important;
+        }
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+        }
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.6);
+            font-weight: 500;
+        }
+
+        /* テーブル関連のスタイル */
+        .vue-table-wrapper {
+            padding: 20px 0;
+        }
+        .vue-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        .vue-table th {
+            cursor: pointer;
+            position: relative;
+            padding-right: 20px;
+        }
+        .vue-table th.active {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .vue-table th::after {
+            content: '';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .vue-table th.asc::after {
+            content: '▲';
+            font-size: 0.7em;
+        }
+        .vue-table th.desc::after {
+            content: '▼';
+            font-size: 0.7em;
+        }
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        .page-info {
+            color: #666;
+        }
+        .search-box {
+            margin-bottom: 1rem;
+        }
+        .group-badge {
+            display: inline-flex;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .group-badge i {
+            margin-right: 4px;
+        }
+        .rate-burst-info {
+            display: inline-block;
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .rate {
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .burst {
+            color: #FF9800;
+            font-weight: bold;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+        .action-button {
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            width: 30px;
+            height: 30px;
+        }
+        .action-button.debug {
+            background-color: #2196F3;
+        }
+        .action-button.result {
+            background-color: #4CAF50;
+        }
+        .action-button.tasks {
+            background-color: #FF9800;
+        }
+        .action-button:hover {
+            opacity: 0.8;
+        }
+        .action-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .project-name {
+            font-weight: bold;
+            color: #1976D2;
+            text-decoration: none;
+        }
+        .project-name:hover {
+            text-decoration: underline;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: white;
+            margin-left: 8px;
+        }
+        .status-badge.running {
+            background-color: #4CAF50;
+        }
+        .status-badge.paused {
+            background-color: #FF9800;
+        }
+        .status-badge.stopped {
+            background-color: #F44336;
+        }
+        .mini-progress {
+            width: 100%;
+            height: 4px;
+            background-color: #f5f5f5;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+    </style>
+
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary" style="height: 46px;" density="compact">
+                <v-app-bar-title style="font-size: 18px; padding: 0;">PySpider Dashboard Classic Mode</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" href="/" density="compact" style="margin-top: -2px;">
+                    Classic Mode
+                </v-btn>
+                <v-btn variant="text" href="http://docs.pyspider.org/" target="_blank" prepend-icon="mdi-book-open-variant" density="compact" style="margin-top: -2px;">
+                    Documentation
+                </v-btn>
+            </v-app-bar>
+
+            <v-main style="margin-top: 0; padding-top: 60px;">
+                <v-container fluid style="padding-top: 0;">
+                    <!-- 統計情報カード -->
+                    <v-row class="mb-4">
+                        <v-col cols="12" md="3">
+                            <v-card class="metric-card">
+                                <div class="metric-value" style="color: #4CAF50;">
+                                    ${ totalTasks }
+                                </div>
+                                <div class="metric-label">
+                                    Total Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-card class="metric-card">
+                                <div class="metric-value" style="color: #2196F3;">
+                                    ${ totalPending }
+                                </div>
+                                <div class="metric-label">
+                                    Pending Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-card class="metric-card">
+                                <div class="metric-value" style="color: #4CAF50;">
+                                    ${ totalSuccess }
+                                </div>
+                                <div class="metric-label">
+                                    Successful Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-card class="metric-card">
+                                <div class="metric-value" style="color: #F44336;">
+                                    ${ totalError }
+                                </div>
+                                <div class="metric-label">
+                                    Failed Tasks
+                                </div>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+
+                    <h1 style="font-size: 18px; margin-top: 5px; margin-bottom: 15px;">Projects</h1>
+
+                    <!-- 検索とフィルターはDataTableに組み込み済み -->
+                    <!-- <v-row class="mb-4">
+                        <v-col cols="12" sm="6">
+                            <v-text-field
+                                v-model="search"
+                                label="Search projects"
+                                prepend-inner-icon="mdi-magnify"
+                                variant="outlined"
+                                density="compact"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6">
+                            <v-select
+                                v-model="statusFilter"
+                                :items="statusOptions"
+                                label="Filter by status"
+                                variant="outlined"
+                                density="compact"
+                            ></v-select>
+                        </v-col>
+                    </v-row> -->
+
+                    <!-- Projects Card -->
+                    <v-card>
+
+                        <v-card-text>
+                            <div v-if="filteredProjects.length === 0" class="pa-4 text-center">
+                                <p class="text-h6 mb-4">No projects found. Create a new project to get started.</p>
+                                <v-btn color="primary" prepend-icon="mdi-plus" @click="showNewProjectDialog = true">
+                                    New Project
+                                </v-btn>
+                            </div>
+
+                            <div v-else class="vue-table-wrapper">
+                                <!-- Search Box -->
+                                <div class="search-box">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="mdi mdi-magnify"></i></span>
+                                                <input type="text" class="form-control" v-model="search" placeholder="Search projects...">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text">Status</span>
+                                                <select class="form-select" v-model="statusFilter">
+                                                    <option v-for="option in statusOptions" :key="option.value" :value="option.value">
+                                                        ${ option.title }
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 text-end">
+                                            <v-btn color="primary" prepend-icon="mdi-plus" @click="showNewProjectDialog = true" class="float-end">
+                                                New Project
+                                            </v-btn>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Native Vue.js Table -->
+                                <table class="vue-table table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th @click="sortBy('name')" :class="{ active: sortKey === 'name', asc: sortKey === 'name' && !sortDesc, desc: sortKey === 'name' && sortDesc }" style="width: 20%">Project</th>
+                                            <th @click="sortBy('group')" :class="{ active: sortKey === 'group', asc: sortKey === 'group' && !sortDesc, desc: sortKey === 'group' && sortDesc }" style="width: 10%">Group</th>
+                                            <th @click="sortBy('status')" :class="{ active: sortKey === 'status', asc: sortKey === 'status' && !sortDesc, desc: sortKey === 'status' && sortDesc }" style="width: 10%">Status</th>
+                                            <th @click="sortBy('rate')" :class="{ active: sortKey === 'rate', asc: sortKey === 'rate' && !sortDesc, desc: sortKey === 'rate' && sortDesc }" style="width: 10%">Rate/Burst</th>
+                                            <th style="width: 40%">Progress</th>
+                                            <th style="width: 10%">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="project in paginatedProjects" :key="project.name">
+                                            <td>
+                                                <a :href="'/debug-v2/' + project.name" class="project-name">
+                                                    <i :class="'mdi ' + getStatusIcon(project.status)" :style="{color: getStatusColor(project.status)}"></i>
+                                                    ${ project.name }
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span v-if="project.group" class="group-badge">
+                                                    <i class="mdi mdi-folder"></i>
+                                                    ${ project.group }
+                                                </span>
+                                                <span v-else>-</span>
+                                            </td>
+                                            <td>
+                                                <span :class="'status-badge ' + project.status.toLowerCase()">
+                                                    ${ project.status }
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="rate-burst-info">
+                                                    <span class="rate">${ project.rate || 1 }</span> / <span class="burst">${ project.burst || 3 }</span>
+                                                </span>
+                                            </td>
+                                            <td style="width: 40%">
+                                                <!-- タスク進行状況のプログレスバー -->
+                                                <div v-if="projectCounters[project.name]" class="progress-container">
+                                                    <!-- 時間範囲選択タブ -->
+                                                    <div class="time-range-tabs">
+                                                        <div class="btn-group btn-group-sm mb-2">
+                                                            <button v-for="option in timeRangeOptions" :key="option.value"
+                                                                class="btn btn-outline-secondary"
+                                                                :class="{ active: selectedTimeRange === option.value }"
+                                                                @click="selectedTimeRange = option.value">
+                                                                ${ option.label }
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="progress-bars">
+                                                        <!-- Pending Tasks -->
+                                                        <div class="progress-row">
+                                                            <div class="progress-label">Pending:</div>
+                                                            <div class="progress-bar">
+                                                                <div class="progress-segment progress-pending"
+                                                                    :style="{width: getProgressWidth(project.name, 'pending', selectedTimeRange) + '%'}"
+                                                                    :title="'Pending: ' + getProgressCount(project.name, 'pending', selectedTimeRange)"></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Active Tasks -->
+                                                        <div class="progress-row">
+                                                            <div class="progress-label">Active:</div>
+                                                            <div class="progress-bar">
+                                                                <div class="progress-segment progress-active"
+                                                                    :style="{width: getActiveTasksWidth(project.name, selectedTimeRange) + '%'}"
+                                                                    :title="'Active: ' + getActiveTasksCount(project.name)"></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Success Tasks -->
+                                                        <div class="progress-row">
+                                                            <div class="progress-label">Success:</div>
+                                                            <div class="progress-bar">
+                                                                <div class="progress-segment progress-success"
+                                                                    :style="{width: getProgressWidth(project.name, 'success', selectedTimeRange) + '%'}"
+                                                                    :title="'Success: ' + getProgressCount(project.name, 'success', selectedTimeRange)"></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Error Tasks -->
+                                                        <div class="progress-row">
+                                                            <div class="progress-label">Error:</div>
+                                                            <div class="progress-bar">
+                                                                <div class="progress-segment progress-error"
+                                                                    :style="{width: getProgressWidth(project.name, 'failed', selectedTimeRange) + '%'}"
+                                                                    :title="'Error: ' + getProgressCount(project.name, 'failed', selectedTimeRange)"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="progress-text">
+                                                        <small>
+                                                            <span class="time-range-label">${ timeRangeOptions.find(o => o.value === selectedTimeRange).label }:</span>
+                                                            Pending: ${ getProgressCount(project.name, 'pending', selectedTimeRange) } /
+                                                            Active: ${ getActiveTasksCount(project.name) } /
+                                                            Success: ${ getProgressCount(project.name, 'success', selectedTimeRange) } /
+                                                            Error: ${ getProgressCount(project.name, 'failed', selectedTimeRange) }
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="progress-container">
+                                                    <div class="progress-bars">
+                                                        <div class="progress-row">
+                                                            <div class="progress-label">Loading:</div>
+                                                            <div class="progress-bar">
+                                                                <div class="progress-segment progress-pending" style="width: 100%" title="Loading..."></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="progress-text">
+                                                        <small>Loading...</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a :href="'/debug/' + project.name" class="action-button debug" title="Debug">
+                                                        <i class="mdi mdi-code-tags"></i>
+                                                    </a>
+                                                    <a :href="'/result-v2/' + project.name" class="action-button result" title="Results">
+                                                        <i class="mdi mdi-database"></i>
+                                                    </a>
+                                                    <a :href="'/tasks-v2/' + project.name" class="action-button tasks" title="Tasks">
+                                                        <i class="mdi mdi-format-list-checks"></i>
+                                                    </a>
+                                                    <!-- Runボタン -->
+                                                    <a href="#" class="action-button" style="background-color: #4CAF50;" title="Run"
+                                                       @click.prevent="runProject(project)"
+                                                       :class="{ 'disabled': project.status !== 'RUNNING' }">
+                                                        <i class="mdi mdi-play"></i>
+                                                    </a>
+
+                                                    <a href="#" class="action-button" style="background-color: #9C27B0;" title="Edit"
+                                                       @click.prevent="editProject(project)">
+                                                        <i class="mdi mdi-pencil"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Pagination Controls -->
+                                <div class="pagination-controls">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="page-info">
+                                                Showing ${ (currentPage - 1) * pageSize + 1 } to ${ Math.min(currentPage * pageSize, filteredProjects.length) } of ${ filteredProjects.length } projects
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <select class="form-select form-select-sm d-inline-block me-2" style="width: auto;" v-model="pageSize">
+                                                <option v-for="size in pageSizeOptions" :key="size" :value="size">${ size }</option>
+                                            </select>
+                                            <button class="btn btn-sm btn-outline-secondary" @click="prevPage" :disabled="currentPage === 1">
+                                                <i class="mdi mdi-chevron-left"></i> Prev
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1" @click="nextPage" :disabled="currentPage >= totalPages">
+                                                Next <i class="mdi mdi-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </v-card-text>
+                    </v-card>
+                </v-container>
+            </v-main>
+
+            <!-- New Project Dialog -->
+            <v-dialog v-model="showNewProjectDialog" max-width="500">
+                <v-card>
+                    <v-card-title>Create New Project</v-card-title>
+                    <v-card-text>
+                        <v-form @submit.prevent="createProject">
+                            <v-text-field
+                                v-model="newProject.name"
+                                label="Project Name"
+                                required
+                            ></v-text-field>
+                            <v-text-field
+                                v-model="newProject.startUrl"
+                                label="Start URL"
+                            ></v-text-field>
+                        </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" @click="showNewProjectDialog = false">Cancel</v-btn>
+                        <v-btn color="primary" @click="createProject" :disabled="!newProject.name">Create</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+            <!-- Edit Project Dialog -->
+            <v-dialog v-model="showEditDialog" max-width="500">
+                <v-card>
+                    <v-card-title class="text-h5">Edit Project</v-card-title>
+                    <v-card-text>
+                        <v-form @submit.prevent="saveProjectChanges">
+                            <v-text-field
+                                v-model="editingProject.name"
+                                label="Project Name"
+                                disabled
+                            ></v-text-field>
+                            <v-select
+                                v-model="editingProject.status"
+                                :items="['RUNNING', 'PAUSED', 'STOPPED']"
+                                label="Status"
+                            ></v-select>
+                            <v-text-field
+                                v-model="editingProject.group"
+                                label="Group"
+                            ></v-text-field>
+                            <div class="d-flex gap-2">
+                                <v-text-field
+                                    v-model.number="editingProject.rate"
+                                    label="Rate"
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    style="flex: 1;"
+                                    hint="Requests per second"
+                                    persistent-hint
+                                ></v-text-field>
+                                <v-text-field
+                                    v-model.number="editingProject.burst"
+                                    label="Burst"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    style="flex: 1;"
+                                    hint="Concurrent requests"
+                                    persistent-hint
+                                ></v-text-field>
+                            </div>
+                        </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" @click="showEditDialog = false">Cancel</v-btn>
+                        <v-btn color="primary" @click="saveProjectChanges">Save</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+
+
+            <!-- Snackbar for notifications -->
+            <v-snackbar v-model="snackbar.show" :color="snackbar.color" location="top" timeout="3000">
+                ${ snackbar.text }
+                <template v-slot:actions>
+                    <v-btn variant="text" @click="snackbar.show = false">Close</v-btn>
+                </template>
+            </v-snackbar>
+        </v-app>
+    </div>
+
+    <script>
+        window.projects = {{ projects|safe }};
+        console.log('Projects data:', window.projects);
+
+        const { createApp } = Vue;
+        const vuetify = Vuetify.createVuetify();
+
+        // Vue.jsのデリミタを変更
+        const app = createApp({
+            delimiters: ['${', '}'],
+            data() {
+                return {
+                    message: 'PySpider Dashboard',
+                    projects: window.projects || [],
+                    search: '',
+                    statusFilter: 'ALL',
+                    statusOptions: [
+                        { title: 'All', value: 'ALL' },
+                        { title: 'Running', value: 'RUNNING' },
+                        { title: 'Paused', value: 'PAUSED' },
+                        { title: 'Stopped', value: 'STOPPED' }
+                    ],
+                    showNewProjectDialog: false,
+                    newProject: {
+                        name: '',
+                        startUrl: ''
+                    },
+                    showEditDialog: false,
+                    editingProject: null,
+
+                    snackbar: {
+                        show: false,
+                        text: '',
+                        color: 'success'
+                    },
+                    projectCounters: {}, // プロジェクトのカウンターデータ
+                    activeTasks: [], // アクティブなタスクのリスト
+                    counterInterval: null, // カウンターデータの定期取得用インターバル
+                    activeTasksInterval: null, // アクティブタスクデータの定期取得用インターバル
+                    selectedTimeRange: 'all', // 選択された時間範囲（'all', '1d', '1h', '5m'）
+                    timeRangeOptions: [
+                        { value: 'all', label: 'All Time' },
+                        { value: '1d', label: 'Last 24h' },
+                        { value: '1h', label: 'Last Hour' },
+                        { value: '5m', label: 'Last 5min' }
+                    ],
+                    // ページネーション関連
+                    currentPage: 1,
+                    pageSize: 25,
+                    pageSizeOptions: [10, 25, 50, 100],
+                    // ソート関連
+                    sortKey: 'name',
+                    sortDesc: false
+                }
+            },
+            computed: {
+                // タスク統計情報
+                totalTasks() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        const counter = this.getProjectCounter(projectName);
+                        if (counter) {
+                            total += counter.task || 0;
+                        }
+                    }
+                    return total;
+                },
+                totalPending() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        total += this.getProgressCount(projectName, 'pending');
+                    }
+                    return total;
+                },
+                totalSuccess() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        total += this.getProgressCount(projectName, 'success');
+                    }
+                    return total;
+                },
+                totalError() {
+                    let total = 0;
+                    for (const projectName in this.projectCounters) {
+                        total += this.getProgressCount(projectName, 'failed');
+                    }
+                    return total;
+                },
+
+                filteredProjects() {
+                    // 検索とステータスフィルタリングを適用
+                    return this.projects.filter(project => {
+                        // 検索フィルタリング
+                        const searchMatch = this.search === '' ||
+                            project.name.toLowerCase().includes(this.search.toLowerCase()) ||
+                            (project.group && project.group.toLowerCase().includes(this.search.toLowerCase()));
+
+                        // ステータスフィルタリング
+                        const statusMatch = this.statusFilter === 'ALL' || project.status === this.statusFilter;
+
+                        return searchMatch && statusMatch;
+                    }).sort((a, b) => {
+                        // ソート適用
+                        const modifier = this.sortDesc ? -1 : 1;
+                        if (a[this.sortKey] < b[this.sortKey]) return -1 * modifier;
+                        if (a[this.sortKey] > b[this.sortKey]) return 1 * modifier;
+                        return 0;
+                    });
+                },
+
+                // ページネーション用のプロジェクトリスト
+                paginatedProjects() {
+                    const start = (this.currentPage - 1) * this.pageSize;
+                    const end = start + this.pageSize;
+                    return this.filteredProjects.slice(start, end);
+                },
+
+                // 総ページ数
+                totalPages() {
+                    return Math.ceil(this.filteredProjects.length / this.pageSize);
+                }
+            },
+            mounted() {
+                // ページ読み込み時にデータを取得
+                this.fetchCounterData();
+                this.fetchActiveTasks();
+
+                // 10秒ごとにカウンターデータを更新
+                this.counterInterval = setInterval(() => {
+                    this.fetchCounterData();
+                }, 10000);
+
+                // 5秒ごとにアクティブタスクデータを更新
+                this.activeTasksInterval = setInterval(() => {
+                    this.fetchActiveTasks();
+                }, 5000);
+
+                // スケジューラーサービスが利用できない場合のメッセージを表示
+                setTimeout(() => {
+                    if (Object.keys(this.projectCounters).length === 0) {
+                        this.showSnackbar('Scheduler service is not available. Some features may not work properly.', 'warning');
+                    }
+                }, 2000);
+            },
+
+            watch: {
+                // プロジェクトカウンターが更新されたとき
+                projectCounters: {
+                    deep: true,
+                    handler() {
+                        // プログレスバーの更新のみを行い、DataTableの再描画は行わない
+                    }
+                }
+            },
+
+            beforeUnmount() {
+                // コンポーネント破棄時にインターバルをクリア
+                if (this.counterInterval) {
+                    clearInterval(this.counterInterval);
+                }
+                if (this.activeTasksInterval) {
+                    clearInterval(this.activeTasksInterval);
+                }
+            },
+
+            methods: {
+                getStatusColor(status) {
+                    switch (status) {
+                        case 'RUNNING': return 'success';
+                        case 'PAUSED': return 'warning';
+                        case 'STOPPED': return 'error';
+                        default: return 'grey';
+                    }
+                },
+                getStatusIcon(status) {
+                    switch (status) {
+                        case 'RUNNING': return 'mdi-play-circle';
+                        case 'PAUSED': return 'mdi-pause-circle';
+                        case 'STOPPED': return 'mdi-stop-circle';
+                        default: return 'mdi-help-circle';
+                    }
+                },
+
+                // カウンターデータを取得するメソッド
+                fetchCounterData() {
+                    fetch('/counter')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.projectCounters = data;
+                            console.log('Counter data:', data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching counter data:', error);
+                            // スケジューラーサービスが利用できない場合は、空のデータを設定
+                            // プロジェクトごとにデフォルトのカウンターデータを作成
+                            const defaultCounters = {};
+                            this.projects.forEach(project => {
+                                defaultCounters[project.name] = {
+                                    'all': {
+                                        'pending': 0,
+                                        'success': 0,
+                                        'retry': 0,
+                                        'failed': 0,
+                                        'task': 0,
+                                        'title': 'pending: 0, success: 0, retry: 0, failed: 0'
+                                    },
+                                    'time': {
+                                        'fetch_time': 0.1,
+                                        'process_time': 0.05
+                                    }
+                                };
+                            });
+                            this.projectCounters = defaultCounters;
+                        });
+                },
+
+                // プロジェクトのカウンターデータを取得するメソッド
+                getProjectCounter(projectName, timeRange = 'all') {
+                    if (!this.projectCounters || !this.projectCounters[projectName]) {
+                        // カウンターデータが存在しない場合はデフォルト値を返す
+                        return {
+                            'pending': 0,
+                            'success': 0,
+                            'retry': 0,
+                            'failed': 0,
+                            'task': 0,
+                            'title': 'pending: 0, success: 0, retry: 0, failed: 0'
+                        };
+                    }
+
+                    // 指定された時間範囲のデータを返す
+                    return this.projectCounters[projectName][timeRange] || {
+                        'pending': 0,
+                        'success': 0,
+                        'retry': 0,
+                        'failed': 0,
+                        'task': 0,
+                        'title': 'pending: 0, success: 0, retry: 0, failed: 0'
+                    };
+                },
+
+                // プログレスバーの幅を計算するメソッド
+                getProgressWidth(projectName, type, timeRange = 'all') {
+                    const counter = this.getProjectCounter(projectName, timeRange);
+                    if (!counter) return 0;
+
+                    const total = counter.task || 0;
+                    if (total === 0) return 0;
+
+                    const value = counter[type] || 0;
+                    return (value / total) * 100;
+                },
+
+                // プログレスバーのカウントを取得するメソッド
+                getProgressCount(projectName, type, timeRange = 'all') {
+                    const counter = this.getProjectCounter(projectName, timeRange);
+                    if (!counter) return 0;
+
+                    return counter[type] || 0;
+                },
+
+                // アクティブなタスクを取得するメソッド
+                fetchActiveTasks() {
+                    fetch('/dashboard-active-tasks')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.activeTasks = data;
+                            console.log('Active tasks:', data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching active tasks:', error);
+                            this.activeTasks = [];
+                        });
+                },
+
+                // プロジェクトのアクティブなタスク数を取得するメソッド
+                getActiveTasksCount(projectName) {
+                    if (!this.activeTasks || !this.activeTasks.length) return 0;
+
+                    // アクティブなタスクをフィルタリング
+                    const projectTasks = this.activeTasks.filter(task => {
+                        return task[1] && task[1].project === projectName;
+                    });
+
+                    return projectTasks.length;
+                },
+
+                // アクティブなタスクのプログレスバー幅を計算するメソッド
+                getActiveTasksWidth(projectName, timeRange = 'all') {
+                    const counter = this.getProjectCounter(projectName, timeRange);
+                    if (!counter) return 0;
+
+                    const total = counter.task || 0;
+                    if (total === 0) return 0;
+
+                    const activeCount = this.getActiveTasksCount(projectName);
+                    return (activeCount / total) * 100;
+                },
+                goToDebug(project) {
+                    // Debugページに遷移
+                    window.location.href = '/debug/' + project.name;
+                },
+
+                runProject(project) {
+                    // プロジェクトのステータスがRUNNINGでない場合は実行しない
+                    if (project.status !== 'RUNNING') {
+                        this.showSnackbar('Project must be in RUNNING status to run tasks', 'warning');
+                        return;
+                    }
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('project', project.name);
+
+                    // Send request
+                    fetch('/run', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            this.showSnackbar('Project ' + project.name + ' started successfully', 'success');
+                        } else {
+                            throw new Error('Failed to start project');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error running project:', error);
+                        this.showSnackbar('Failed to start project: ' + error.message, 'error');
+                    });
+                },
+
+
+                editProject(project) {
+                    // プロジェクトデータのコピーを作成
+                    this.editingProject = { ...project };
+
+                    // Rate と Burst の値を確認し、デフォルト値を設定
+                    if (this.editingProject.rate === undefined || this.editingProject.rate === null) {
+                        this.editingProject.rate = 1;
+                    }
+                    if (this.editingProject.burst === undefined || this.editingProject.burst === null) {
+                        this.editingProject.burst = 3;
+                    }
+
+                    // モーダルを表示
+                    this.showEditDialog = true;
+                },
+                saveProjectChanges() {
+                    if (!this.editingProject) return;
+
+                    // Validate rate and burst values
+                    const rate = parseFloat(this.editingProject.rate) || 1;
+                    const burst = parseFloat(this.editingProject.burst) || 3;
+
+                    // Make sure rate and burst are valid numbers
+                    this.editingProject.rate = rate;
+                    this.editingProject.burst = burst;
+
+                    // First update status
+                    const statusFormData = new FormData();
+                    statusFormData.append('pk', this.editingProject.name);
+                    statusFormData.append('name', 'status');
+                    statusFormData.append('value', this.editingProject.status);
+
+                    fetch('/update', {
+                        method: 'POST',
+                        body: statusFormData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Then update group
+                            const groupFormData = new FormData();
+                            groupFormData.append('pk', this.editingProject.name);
+                            groupFormData.append('name', 'group');
+                            groupFormData.append('value', this.editingProject.group || '');
+
+                            return fetch('/update', {
+                                method: 'POST',
+                                body: groupFormData
+                            });
+                        } else {
+                            throw new Error('Failed to update status');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Finally update rate/burst
+                            const rateFormData = new FormData();
+                            rateFormData.append('pk', this.editingProject.name);
+                            rateFormData.append('name', 'rate');
+                            rateFormData.append('value', `${this.editingProject.rate}/${this.editingProject.burst}`);
+
+                            return fetch('/update', {
+                                method: 'POST',
+                                body: rateFormData
+                            });
+                        } else {
+                            throw new Error('Failed to update group');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update project in list
+                            const index = this.projects.findIndex(p => p.name === this.editingProject.name);
+                            if (index !== -1) {
+                                this.projects[index].status = this.editingProject.status;
+                                this.projects[index].group = this.editingProject.group || '';
+                                this.projects[index].rate = this.editingProject.rate;
+                                this.projects[index].burst = this.editingProject.burst;
+                            }
+
+                            this.showSnackbar('Project ' + this.editingProject.name + ' updated successfully', 'success');
+                            this.showEditDialog = false;
+                        } else {
+                            throw new Error('Failed to update rate/burst');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating project:', error);
+                        this.showSnackbar('Failed to update project: ' + error.message, 'error');
+                    });
+                },
+
+                // ページネーション関連のメソッド
+                nextPage() {
+                    if (this.currentPage < this.totalPages) {
+                        this.currentPage++;
+                    }
+                },
+                prevPage() {
+                    if (this.currentPage > 1) {
+                        this.currentPage--;
+                    }
+                },
+
+                // ソート関連のメソッド
+                sortBy(key) {
+                    // 同じキーをクリックした場合は昇順/降順を切り替え
+                    if (this.sortKey === key) {
+                        this.sortDesc = !this.sortDesc;
+                    } else {
+                        this.sortKey = key;
+                        this.sortDesc = false;
+                    }
+
+                    // ソート時は1ページ目に戻る
+                    this.currentPage = 1;
+                },
+
+
+
+                createProject() {
+                    if (!this.newProject.name) return;
+
+                    // プロジェクト名を保存
+                    const projectName = this.newProject.name;
+                    const startUrl = this.newProject.startUrl || '';
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('project-name', projectName);
+                    formData.append('start-urls', startUrl);
+
+                    fetch('/debug/new', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.text();
+                    })
+                    .then(text => {
+                        console.log('Project creation response:', text);
+                        this.showSnackbar('Project ' + projectName + ' created successfully', 'success');
+
+                        // Add new project to list
+                        this.projects.push({
+                            name: projectName,
+                            status: 'RUNNING',
+                            group: '',
+                            rate: 1,
+                            burst: 3,
+                            updatetime: Date.now() / 1000
+                        });
+
+                        // Reset form and close dialog
+                        this.newProject = {
+                            name: '',
+                            startUrl: ''
+                        };
+                        this.showNewProjectDialog = false;
+
+                        // Redirect to debug page
+                        setTimeout(() => {
+                            window.location.href = '/debug/' + projectName;
+                        }, 500);
+                    })
+                    .catch(error => {
+                        console.error('Error creating project:', error);
+                        this.showSnackbar('Failed to create project: ' + error.message, 'error');
+                    });
+                },
+                showSnackbar(text, color = 'success') {
+                    this.snackbar.text = text;
+                    this.snackbar.color = color;
+                    this.snackbar.show = true;
+                }
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

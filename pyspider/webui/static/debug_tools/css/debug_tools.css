@@ -1,0 +1,187 @@
+/* Debug Tools CSS */
+
+/* General styles */
+#debug-tools-container {
+  margin-top: 20px;
+}
+
+.tab-content {
+  padding: 15px;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  border-radius: 0 0 4px 4px;
+}
+
+/* Interactive Debugger */
+#debugger-source-code {
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#debugger-source-code pre {
+  margin: 0;
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+}
+
+.current-line {
+  background-color: #ffffcc;
+  font-weight: bold;
+}
+
+#debugger-console {
+  height: 200px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+#debugger-output {
+  margin: 0;
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+  min-height: 150px;
+}
+
+/* Request/Response Inspector */
+#request-list, #response-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+#request-body-content, #response-body-content, #response-inspector-body-content, #extractor-results {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Performance Profiler */
+#profiler-cpu-results {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Breakpoint styles */
+.breakpoint-enabled {
+  color: #5cb85c;
+}
+
+.breakpoint-disabled {
+  color: #d9534f;
+}
+
+/* Status colors */
+.status-success {
+  color: #5cb85c;
+}
+
+.status-error {
+  color: #d9534f;
+}
+
+.status-warning {
+  color: #f0ad4e;
+}
+
+.status-info {
+  color: #5bc0de;
+}
+
+/* Response body preview */
+#response-inspector-body-preview {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: white;
+  min-height: 300px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+/* Memory snapshot comparison */
+.memory-diff-positive {
+  color: #d9534f;
+}
+
+.memory-diff-negative {
+  color: #5cb85c;
+}
+
+/* Timing statistics */
+.timing-active {
+  font-weight: bold;
+  color: #5bc0de;
+}
+
+/* Function statistics */
+.function-slow {
+  color: #d9534f;
+}
+
+.function-fast {
+  color: #5cb85c;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .panel-body {
+    padding: 10px;
+  }
+  
+  .tab-content {
+    padding: 10px;
+  }
+}
+
+/* Code highlighting */
+.code-keyword {
+  color: #0000ff;
+}
+
+.code-string {
+  color: #a31515;
+}
+
+.code-comment {
+  color: #008000;
+}
+
+.code-number {
+  color: #098658;
+}
+
+.code-function {
+  color: #795e26;
+}
+
+/* Diff highlighting */
+.diff-added {
+  background-color: #e6ffed;
+}
+
+.diff-removed {
+  background-color: #ffeef0;
+}
+
+.diff-unchanged {
+  background-color: #f8f8f8;
+}

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpider Dashboard Classic Mode</title>
+
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.3.67/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .project-card {
+            margin-bottom: 16px;
+        }
+        .status-running {
+            color: #4caf50;
+        }
+        .status-paused {
+            color: #ff9800;
+        }
+        .status-stopped {
+            color: #f44336;
+        }
+
+        /* プログレスバーのスタイル */
+        .progress-container {
+            margin-top: 8px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .progress-bar {
+            height: 8px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+        }
+        .progress-segment {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .progress-pending {
+            background-color: #2196F3; /* 青 */
+        }
+        .progress-success {
+            background-color: #4CAF50; /* 緑 */
+        }
+        .progress-error {
+            background-color: #F44336; /* 赤 */
+        }
+        .progress-text {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2px;
+            font-size: 0.75rem;
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        /* DataTable関連のスタイル */
+        .dataTables_wrapper {
+            padding: 20px 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+        .action-button {
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            width: 30px;
+            height: 30px;
+        }
+        .action-button.debug {
+            background-color: #2196F3;
+        }
+        .action-button.result {
+            background-color: #4CAF50;
+        }
+        .action-button.tasks {
+            background-color: #FF9800;
+        }
+        .action-button:hover {
+            opacity: 0.8;
+        }
+        .action-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .project-name {
+            font-weight: bold;
+            color: #1976D2;
+            text-decoration: none;
+        }
+        .project-name:hover {
+            text-decoration: underline;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: white;
+            margin-left: 8px;
+        }
+        .status-badge.running {
+            background-color: #4CAF50;
+        }
+        .status-badge.paused {
+            background-color: #FF9800;
+        }
+        .status-badge.stopped {
+            background-color: #F44336;
+        }
+        .mini-progress {
+            width: 100%;
+            height: 4px;
+            background-color: #f5f5f5;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+    </style>
+
+    <!-- jQuery (DataTablesに必要) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary">
+                <v-app-bar-title>PySpider Dashboard Classic Mode</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" href="/">
+                    Classic Mode
+                </v-btn>
+                <v-btn variant="text" href="http://docs.pyspider.org/" target="_blank" prepend-icon="mdi-book-open-variant">
+                    Documentation
+                </v-btn>
+            </v-app-bar>
+
+            <v-main>
+                <v-container>
+                    <h1 class="text-h4 mb-4">Projects</h1>
+
+                    <!-- 検索とフィルターはDataTableに組み込み済み -->
+                    <!-- <v-row class="mb-4">
+                        <v-col cols="12" sm="6">
+                            <v-text-field
+                                v-model="search"
+                                label="Search projects"
+                                prepend-inner-icon="mdi-magnify"
+                                variant="outlined"
+                                density="compact"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6">
+                            <v-select
+                                v-model="statusFilter"
+                                :items="statusOptions"
+                                label="Filter by status"
+                                variant="outlined"
+                                density="compact"
+                            ></v-select>
+                        </v-col>
+                    </v-row> -->
+
+                    <!-- Projects Card -->
+                    <v-card>
+                        <v-card-title class="d-flex align-center">
+                            Projects
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" prepend-icon="mdi-plus" @click="showNewProjectDialog = true">
+                                New Project
+                            </v-btn>
+                        </v-card-title>
+
+                        <v-card-text>
+                            <div v-if="filteredProjects.length === 0" class="pa-4 text-center">
+                                <p class="text-h6 mb-4">No projects found. Create a new project to get started.</p>
+                                <v-btn color="primary" prepend-icon="mdi-plus" @click="showNewProjectDialog = true">
+                                    New Project
+                                </v-btn>
+                            </div>
+
+                            <div v-else>
+                                <!-- DataTable for Projects -->
+                                <table id="projects-table" class="table table-striped table-hover" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Progress</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="project in filteredProjects" :key="project.name">
+                                            <td>
+                                                <a :href="'/debug-v2/' + project.name" class="project-name">
+                                                    <i :class="'mdi ' + getStatusIcon(project.status)" :style="{color: getStatusColor(project.status)}"></i>
+                                                    ${ project.name }
+                                                </a>
+                                                <span v-if="project.group" class="ms-2 text-muted">
+                                                    <i class="mdi mdi-folder"></i>
+                                                    ${ project.group }
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span :class="'status-badge ' + project.status.toLowerCase()">
+                                                    ${ project.status }
+                                                </span>
+                                            </td>
+                                            <td style="width: 30%">
+                                                <!-- タスク進行状況のプログレスバー -->
+                                                <div v-if="projectCounters[project.name]" class="progress-container">
+                                                    <div class="progress-bar">
+                                                        <div class="progress-segment progress-pending"
+                                                            :style="{width: getProgressWidth(project.name, 'pending') + '%'}"
+                                                            :title="'Pending: ' + getProgressCount(project.name, 'pending')"></div>
+                                                        <div class="progress-segment progress-success"
+                                                            :style="{width: getProgressWidth(project.name, 'success') + '%'}"
+                                                            :title="'Success: ' + getProgressCount(project.name, 'success')"></div>
+                                                        <div class="progress-segment progress-error"
+                                                            :style="{width: getProgressWidth(project.name, 'failed') + '%'}"
+                                                            :title="'Error: ' + getProgressCount(project.name, 'failed')"></div>
+                                                    </div>
+                                                    <div class="progress-text">
+                                                        <small>Pending: ${ getProgressCount(project.name, 'pending') } / Success: ${ getProgressCount(project.name, 'success') } / Error: ${ getProgressCount(project.name, 'failed') }</small>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="progress-container">
+                                                    <div class="progress-bar">
+                                                        <div class="progress-segment progress-pending" style="width: 100%" title="Loading..."></div>
+                                                    </div>
+                                                    <div class="progress-text">
+                                                        <small>Loading...</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a :href="'/debug/' + project.name" class="action-button debug" title="Debug">
+                                                        <i class="mdi mdi-code-tags"></i>
+                                                    </a>
+                                                    <a :href="'/result-v2/' + project.name" class="action-button result" title="Results">
+                                                        <i class="mdi mdi-database"></i>
+                                                    </a>
+                                                    <a :href="'/tasks-v2/' + project.name" class="action-button tasks" title="Tasks">
+                                                        <i class="mdi mdi-format-list-checks"></i>
+                                                    </a>
+                                                    <!-- Runボタン -->
+                                                    <a href="#" class="action-button" style="background-color: #4CAF50;" title="Run"
+                                                       @click.prevent="runProject(project)"
+                                                       :class="{ 'disabled': project.status !== 'RUNNING' }">
+                                                        <i class="mdi mdi-play"></i>
+                                                    </a>
+
+                                                    <a href="#" class="action-button" style="background-color: #9C27B0;" title="Edit"
+                                                       @click.prevent="editProject(project)">
+                                                        <i class="mdi mdi-pencil"></i>
+                                                    </a>
+                                                    <a href="#" class="action-button" style="background-color: #F44336;" title="Delete"
+                                                       @click.prevent="confirmDeleteProject(project)">
+                                                        <i class="mdi mdi-delete"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </v-card-text>
+                    </v-card>
+                </v-container>
+            </v-main>
+
+            <!-- New Project Dialog -->
+            <v-dialog v-model="showNewProjectDialog" max-width="500">
+                <v-card>
+                    <v-card-title>Create New Project</v-card-title>
+                    <v-card-text>
+                        <v-form @submit.prevent="createProject">
+                            <v-text-field
+                                v-model="newProject.name"
+                                label="Project Name"
+                                required
+                            ></v-text-field>
+                            <v-text-field
+                                v-model="newProject.startUrl"
+                                label="Start URL"
+                            ></v-text-field>
+                        </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" @click="showNewProjectDialog = false">Cancel</v-btn>
+                        <v-btn color="primary" @click="createProject" :disabled="!newProject.name">Create</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+            <!-- Edit Project Dialog -->
+            <v-dialog v-model="showEditDialog" max-width="500">
+                <v-card>
+                    <v-card-title class="text-h5">Edit Project</v-card-title>
+                    <v-card-text>
+                        <v-form @submit.prevent="saveProjectChanges">
+                            <v-text-field
+                                v-model="editingProject.name"
+                                label="Project Name"
+                                disabled
+                            ></v-text-field>
+                            <v-select
+                                v-model="editingProject.status"
+                                :items="['RUNNING', 'PAUSED', 'STOPPED']"
+                                label="Status"
+                            ></v-select>
+                            <v-text-field
+                                v-model="editingProject.group"
+                                label="Group"
+                            ></v-text-field>
+                        </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" @click="showEditDialog = false">Cancel</v-btn>
+                        <v-btn color="primary" @click="saveProjectChanges">Save</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+            <!-- Delete Confirmation Dialog -->
+            <v-dialog v-model="showDeleteDialog" max-width="400">
+                <v-card>
+                    <v-card-title class="text-h5">Confirm Delete</v-card-title>
+                    <v-card-text>
+                        <p class="mb-3">Are you sure you want to delete the project <strong>${ projectToDelete ? projectToDelete.name : '' }</strong>?</p>
+                        <p class="text-red">This action cannot be undone.</p>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
+                        <v-btn color="error" @click="deleteProject">Delete</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+            <!-- Snackbar for notifications -->
+            <v-snackbar v-model="snackbar.show" :color="snackbar.color" location="top" timeout="3000">
+                ${ snackbar.text }
+                <template v-slot:actions>
+                    <v-btn variant="text" @click="snackbar.show = false">Close</v-btn>
+                </template>
+            </v-snackbar>
+        </v-app>
+    </div>
+
+    <script>
+        window.projects = {{ projects|safe }};
+        console.log('Projects data:', window.projects);
+
+        const { createApp } = Vue;
+        const vuetify = Vuetify.createVuetify();
+
+        // Vue.jsのデリミタを変更
+        const app = createApp({
+            delimiters: ['${', '}'],
+            data() {
+                return {
+                    message: 'PySpider Dashboard',
+                    projects: window.projects || [],
+                    search: '',
+                    statusFilter: 'ALL',
+                    statusOptions: [
+                        { title: 'All', value: 'ALL' },
+                        { title: 'Running', value: 'RUNNING' },
+                        { title: 'Paused', value: 'PAUSED' },
+                        { title: 'Stopped', value: 'STOPPED' }
+                    ],
+                    showNewProjectDialog: false,
+                    newProject: {
+                        name: '',
+                        startUrl: ''
+                    },
+                    showEditDialog: false,
+                    editingProject: null,
+                    showDeleteDialog: false,
+                    projectToDelete: null,
+                    snackbar: {
+                        show: false,
+                        text: '',
+                        color: 'success'
+                    },
+                    projectCounters: {}, // プロジェクトのカウンターデータ
+                    counterInterval: null, // カウンターデータの定期取得用インターバル
+                    dataTable: null // DataTableインスタンス
+                }
+            },
+            computed: {
+                filteredProjects() {
+                    // DataTableのフィルタリングを使用するため、すべてのプロジェクトを返す
+                    return this.projects;
+                }
+            },
+            mounted() {
+                // ページ読み込み時にカウンターデータを取得
+                this.fetchCounterData();
+
+                // 10秒ごとにカウンターデータを更新
+                this.counterInterval = setInterval(() => {
+                    this.fetchCounterData();
+                }, 10000);
+
+                // DataTableの初期化
+                this.$nextTick(() => {
+                    if (this.projects.length > 0) {
+                        this.initDataTable();
+                    }
+                });
+            },
+
+            watch: {
+                // プロジェクトカウンターが更新されたとき
+                projectCounters: {
+                    deep: true,
+                    handler() {
+                        // プログレスバーの更新のみを行い、DataTableの再描画は行わない
+                    }
+                }
+            },
+
+            beforeUnmount() {
+                // コンポーネント破棄時にインターバルをクリア
+                if (this.counterInterval) {
+                    clearInterval(this.counterInterval);
+                }
+
+                // DataTableの破棄
+                if (this.dataTable) {
+                    this.dataTable.destroy();
+                }
+            },
+
+            methods: {
+                getStatusColor(status) {
+                    switch (status) {
+                        case 'RUNNING': return 'success';
+                        case 'PAUSED': return 'warning';
+                        case 'STOPPED': return 'error';
+                        default: return 'grey';
+                    }
+                },
+                getStatusIcon(status) {
+                    switch (status) {
+                        case 'RUNNING': return 'mdi-play-circle';
+                        case 'PAUSED': return 'mdi-pause-circle';
+                        case 'STOPPED': return 'mdi-stop-circle';
+                        default: return 'mdi-help-circle';
+                    }
+                },
+
+                // カウンターデータを取得するメソッド
+                fetchCounterData() {
+                    fetch('/counter')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.projectCounters = data;
+                            console.log('Counter data:', data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching counter data:', error);
+                        });
+                },
+
+                // プロジェクトのカウンターデータを取得するメソッド
+                getProjectCounter(projectName) {
+                    if (!this.projectCounters[projectName]) {
+                        return null;
+                    }
+                    return this.projectCounters[projectName]['all'] || null;
+                },
+
+                // プログレスバーの幅を計算するメソッド
+                getProgressWidth(projectName, type) {
+                    const counter = this.getProjectCounter(projectName);
+                    if (!counter) return 0;
+
+                    const total = counter.task || 0;
+                    if (total === 0) return 0;
+
+                    const value = counter[type] || 0;
+                    return (value / total) * 100;
+                },
+
+                // プログレスバーのカウントを取得するメソッド
+                getProgressCount(projectName, type) {
+                    const counter = this.getProjectCounter(projectName);
+                    if (!counter) return 0;
+
+                    return counter[type] || 0;
+                },
+                goToDebug(project) {
+                    // Debugページに遷移
+                    window.location.href = '/debug/' + project.name;
+                },
+
+                runProject(project) {
+                    // プロジェクトのステータスがRUNNINGでない場合は実行しない
+                    if (project.status !== 'RUNNING') {
+                        this.showSnackbar('Project must be in RUNNING status to run tasks', 'warning');
+                        return;
+                    }
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('project', project.name);
+
+                    // Send request
+                    fetch('/run', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            this.showSnackbar('Project ' + project.name + ' started successfully', 'success');
+                        } else {
+                            throw new Error('Failed to start project');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error running project:', error);
+                        this.showSnackbar('Failed to start project: ' + error.message, 'error');
+                    });
+                },
+
+
+                editProject(project) {
+                    this.editingProject = { ...project };
+                    this.showEditDialog = true;
+                },
+                saveProjectChanges() {
+                    if (!this.editingProject) return;
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('pk', this.editingProject.name);
+                    formData.append('name', 'status');
+                    formData.append('value', this.editingProject.status);
+
+                    fetch('/update', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update project in list
+                            const index = this.projects.findIndex(p => p.name === this.editingProject.name);
+                            if (index !== -1) {
+                                this.projects[index].status = this.editingProject.status;
+                                this.projects[index].group = this.editingProject.group;
+                            }
+
+                            this.showSnackbar('Project ' + this.editingProject.name + ' updated successfully', 'success');
+                            this.showEditDialog = false;
+                        } else {
+                            throw new Error('Failed to update project');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating project:', error);
+                        this.showSnackbar('Failed to update project: ' + error.message, 'error');
+                    });
+                },
+                confirmDeleteProject(project) {
+                    this.projectToDelete = project;
+                    this.showDeleteDialog = true;
+                },
+                deleteProject() {
+                    if (!this.projectToDelete) return;
+
+                    // In a real implementation, you would call an API to delete the project
+                    // For now, we'll just simulate it
+                    setTimeout(() => {
+                        // Remove project from list
+                        this.projects = this.projects.filter(p => p.name !== this.projectToDelete.name);
+
+                        this.showSnackbar('Project ' + this.projectToDelete.name + ' deleted successfully', 'success');
+                        this.showDeleteDialog = false;
+                        this.projectToDelete = null;
+                    }, 500);
+                },
+                // DataTableの初期化メソッド
+                initDataTable() {
+                    // 既存のDataTableがあれば破棄
+                    if (this.dataTable) {
+                        this.dataTable.destroy();
+                    }
+
+                    // DataTableの初期化
+                    this.dataTable = $('#projects-table').DataTable({
+                        responsive: true,
+                        pageLength: 25,
+                        language: {
+                            search: "Search:",
+                            lengthMenu: "Show _MENU_ entries",
+                            info: "Showing _START_ to _END_ of _TOTAL_ projects",
+                            infoEmpty: "Showing 0 to 0 of 0 projects",
+                            infoFiltered: "(filtered from _MAX_ total projects)"
+                        },
+                        columnDefs: [
+                            { orderable: true, targets: [0, 1] },
+                            { orderable: false, targets: [2, 3] },
+                            { width: "40%", targets: 0 },
+                            { width: "10%", targets: 1 },
+                            { width: "30%", targets: 2 },
+                            { width: "20%", targets: 3 }
+                        ],
+                        order: [[0, 'asc']]
+                    });
+                },
+
+
+
+                createProject() {
+                    if (!this.newProject.name) return;
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('project-name', this.newProject.name);
+                    formData.append('start-urls', this.newProject.startUrl || '');
+
+                    fetch('/debug/new', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            this.showSnackbar('Project ' + this.newProject.name + ' created successfully', 'success');
+
+                            // Add new project to list
+                            this.projects.push({
+                                name: this.newProject.name,
+                                status: 'RUNNING',
+                                group: '',
+                                updatetime: Date.now() / 1000
+                            });
+
+                            // Reset form
+                            this.newProject = {
+                                name: '',
+                                startUrl: ''
+                            };
+
+                            this.showNewProjectDialog = false;
+
+                            // Redirect to debug page
+                            window.location.href = '/debug/' + this.newProject.name;
+                        } else {
+                            throw new Error('Failed to create project');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error creating project:', error);
+                        this.showSnackbar('Failed to create project: ' + error.message, 'error');
+                    });
+                },
+                showSnackbar(text, color = 'success') {
+                    this.snackbar.text = text;
+                    this.snackbar.color = color;
+                    this.snackbar.show = true;
+                }
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

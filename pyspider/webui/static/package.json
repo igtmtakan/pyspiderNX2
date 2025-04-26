@@ -1,0 +1,24 @@
+{
+  "name": "pyspider-webui",
+  "version": "0.3.10",
+  "description": "webui of pyspider",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.0",
+    "pinia": "^2.0.0",
+    "vee-validate": "^4.0.0",
+    "vuetify": "^3.0.0",
+    "@mdi/font": "^7.0.0",
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0",
+    "less": "^4.2.0"
+  }
+}

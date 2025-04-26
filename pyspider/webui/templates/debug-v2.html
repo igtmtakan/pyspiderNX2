@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ project_name|safe }} - Debugger v2 - pyspider</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="pyspider - debugger v2 - {{ project_name|safe }}">
+    <meta name="author" content="binux">
+
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.3.67/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- CodeMirror CSS -->
+    <link href="{{ url_for('cdn', path='codemirror/5.20.2/codemirror.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('cdn', path='codemirror/5.20.2/addon/dialog/dialog.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('cdn', path='codemirror/5.20.2/addon/lint/lint.min.css') }}" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='debug.min.css') }}" rel="stylesheet">
+    <style>
+      {% raw %}
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .fill-height {
+        height: 100%;
+      }
+      .CodeMirror {
+        height: 100%;
+        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .iframe-container {
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+      }
+      .follows-list, .messages-list {
+        height: 100%;
+        overflow: auto;
+      }
+      .follow-item, .message-item {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      }
+      .v-window {
+        height: calc(100% - 48px);
+      }
+      .v-window-item {
+        height: 100%;
+      }
+      .css-selector-helper {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        background-color: rgba(0, 0, 0, 0.03);
+      }
+      #task-editor, #python-editor, #follow-details {
+        height: 100%;
+      }
+      #task-editor .CodeMirror {
+        height: 200px;
+      }
+      #python-editor .CodeMirror {
+        height: 100%;
+      }
+      #iframe-box {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+      }
+      .logs-content {
+        height: 100%;
+        overflow: auto;
+        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+      #html-content {
+        padding: 0;
+        overflow: auto;
+        height: 100%;
+      }
+      #html-content pre {
+        margin: 0;
+        padding: 8px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      /* リサイズハンドル */
+      .resize-handle {
+        position: absolute;
+        background-color: #e0e0e0;
+        z-index: 10;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+
+      .resize-handle:hover {
+        opacity: 1;
+      }
+
+      .resize-handle-horizontal {
+        cursor: col-resize;
+        width: 8px;
+        top: 0;
+        bottom: 0;
+        right: -4px;
+      }
+
+      .resize-handle-vertical {
+        cursor: row-resize;
+        height: 8px;
+        left: 0;
+        right: 0;
+        bottom: -4px;
+      }
+
+      .position-relative {
+        position: relative;
+      }
+      {% endraw %}
+    </style>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <!-- CodeMirror -->
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/codemirror.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/xml/xml.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/css/css.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/javascript/javascript.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/htmlmixed/htmlmixed.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/python/python.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/addon/selection/active-line.min.js') }}"></script>
+    <!-- debug.min.js is not compatible with Vue.js -->
+  </head>
+
+  <body>
+    <div id="app">
+      <v-app>
+        <v-app-bar color="primary" density="compact">
+          <v-app-bar-title>
+            <a href="/" class="text-white text-decoration-none">pyspider</a> &gt; <span id="project-name"></span>
+          </v-app-bar-title>
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="text"
+            href="http://docs.pyspider.org/"
+            target="_blank"
+          >
+            Documentation
+          </v-btn>
+          <v-btn
+            variant="text"
+            :href="'/debug/' + projectName"
+          >
+            Classic Mode
+          </v-btn>
+        </v-app-bar>
+
+        <v-main>
+          <v-container fluid class="fill-height pa-0">
+            <v-row no-gutters class="fill-height">
+              <!-- 左側: タスクエディタと結果表示 -->
+              <v-col cols="12" md="6" class="fill-height d-flex flex-column left-column" id="left-column">
+                <v-card class="ma-2 flex-grow-0" elevation="2">
+                  <v-card-title class="py-2">
+                    <v-icon class="mr-2">mdi-code-json</v-icon>
+                    Task Editor
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="primary"
+                      prepend-icon="mdi-play"
+                      @click="runTask"
+                      :loading="isRunning"
+                      :disabled="isRunning"
+                    >
+                      Run
+                    </v-btn>
+                  </v-card-title>
+                  <v-divider></v-divider>
+                  <v-card-text class="pa-0 position-relative">
+                    <div id="task-editor" style="height: 200px;"></div>
+                    <div class="resize-handle resize-handle-vertical" style="position: absolute; left: 0; right: 0; bottom: 0; height: 8px; cursor: row-resize; background-color: #e0e0e0; opacity: 0.5; z-index: 10;" @mousedown="startResizeTaskEditor"></div>
+                  </v-card-text>
+                </v-card>
+
+                <v-card class="ma-2 flex-grow-1" elevation="2">
+                  <v-card-title class="py-2">
+                    <v-icon class="mr-2">mdi-view-list</v-icon>
+                    Results
+                  </v-card-title>
+                  <v-divider></v-divider>
+                  <v-card-text class="pa-0">
+                    <v-tabs v-model="activeTab" bg-color="background">
+                      <v-tab value="web">
+                        <v-icon class="mr-2">mdi-web</v-icon>
+                        Web
+                      </v-tab>
+                      <v-tab value="html">
+                        <v-icon class="mr-2">mdi-language-html5</v-icon>
+                        HTML
+                      </v-tab>
+                      <v-tab value="follows">
+                        <v-icon class="mr-2">mdi-link</v-icon>
+                        Follows
+                        <v-badge
+                          v-if="follows.length > 0"
+                          :content="follows.length"
+                          color="primary"
+                          inline
+                        ></v-badge>
+                      </v-tab>
+                      <v-tab value="messages">
+                        <v-icon class="mr-2">mdi-message-text</v-icon>
+                        Messages
+                        <v-badge
+                          v-if="messages.length > 0"
+                          :content="messages.length"
+                          color="primary"
+                          inline
+                        ></v-badge>
+                      </v-tab>
+                      <v-tab value="logs">
+                        <v-icon class="mr-2">mdi-console</v-icon>
+                        Logs
+                      </v-tab>
+                    </v-tabs>
+
+                    <v-window v-model="activeTab" class="fill-height">
+                      <!-- Web タブ -->
+                      <v-window-item value="web">
+                        <div class="d-flex flex-column fill-height">
+                          <div class="pa-2 d-flex align-center" v-if="showCssHelper">
+                            <v-text-field
+                              v-model="cssSelector"
+                              label="CSS Selector"
+                              hide-details
+                              density="compact"
+                              class="flex-grow-1 mr-2"
+                            ></v-text-field>
+                            <v-btn
+                              icon
+                              size="small"
+                              @click="copyCssSelector"
+                              title="Copy to clipboard"
+                            >
+                              <v-icon>mdi-content-copy</v-icon>
+                            </v-btn>
+                            <v-btn
+                              icon
+                              size="small"
+                              @click="addToEditor"
+                              title="Add to editor"
+                              class="ml-2"
+                            >
+                              <v-icon>mdi-arrow-right</v-icon>
+                            </v-btn>
+                          </div>
+                          <v-divider v-if="showCssHelper"></v-divider>
+                          <div class="pa-2">
+                            <v-switch
+                              v-model="showCssHelper"
+                              label="Enable CSS Selector Helper"
+                              hide-details
+                              density="compact"
+                              color="primary"
+                            ></v-switch>
+                          </div>
+                          <v-divider></v-divider>
+                          <div class="iframe-container flex-grow-1">
+                            <div id="iframe-box" class="fill-height"></div>
+                          </div>
+                        </div>
+                      </v-window-item>
+
+                      <!-- HTML タブ -->
+                      <v-window-item value="html">
+                        <div id="html-content" style="height: 100%; overflow: auto;"></div>
+                      </v-window-item>
+
+                      <!-- Follows タブ -->
+                      <v-window-item value="follows">
+                        <v-list lines="two" class="follows-list">
+                          <v-list-item
+                            v-for="(follow, index) in follows"
+                            :key="index"
+                            :title="follow.process?.callback || 'unknown'"
+                            :subtitle="follow.url"
+                            class="follow-item"
+                          >
+                            <template v-slot:append>
+                              <v-btn
+                                icon
+                                size="small"
+                                color="primary"
+                                @click="runFollow(follow)"
+                                :disabled="isRunning"
+                                title="Run this task"
+                              >
+                                <v-icon>mdi-play</v-icon>
+                              </v-btn>
+                              <v-btn
+                                icon
+                                size="small"
+                                @click="showFollowDetails(follow, index)"
+                                title="Show details"
+                                class="ml-2"
+                              >
+                                <v-icon>mdi-dots-vertical</v-icon>
+                              </v-btn>
+                            </template>
+                          </v-list-item>
+                          <v-list-item v-if="follows.length === 0">
+                            <v-list-item-title>No follows found</v-list-item-title>
+                          </v-list-item>
+                        </v-list>
+                      </v-window-item>
+
+                      <!-- Messages タブ -->
+                      <v-window-item value="messages">
+                        <v-list lines="one" class="messages-list">
+                          <v-list-item
+                            v-for="(message, index) in messages"
+                            :key="index"
+                            :title="JSON.stringify(message)"
+                            class="message-item"
+                          ></v-list-item>
+                          <v-list-item v-if="messages.length === 0">
+                            <v-list-item-title>No messages found</v-list-item-title>
+                          </v-list-item>
+                        </v-list>
+                      </v-window-item>
+
+                      <!-- Logs タブ -->
+                      <v-window-item value="logs">
+                        <div id="logs-content" class="logs-content pa-2"></div>
+                      </v-window-item>
+                    </v-window>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <!-- 左右のカラム間のリサイズハンドル -->
+              <div class="resize-handle resize-handle-horizontal" style="position: absolute; top: 0; bottom: 0; left: 50%; margin-left: -4px; z-index: 100;" @mousedown="startResizeColumns"></div>
+
+              <!-- 右側: Pythonスクリプトエディタ -->
+              <v-col cols="12" md="6" class="fill-height position-relative right-column" id="right-column">
+                <v-card class="ma-2 fill-height" elevation="2">
+                  <v-card-title class="py-2">
+                    <v-icon class="mr-2">mdi-language-python</v-icon>
+                    Script Editor
+                  </v-card-title>
+                  <v-divider></v-divider>
+                  <v-card-text class="pa-0 fill-height">
+                    <div id="python-editor" style="height: 100%;"></div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-main>
+
+        <!-- フォローの詳細ダイアログ -->
+        <v-dialog v-model="followDialog" max-width="800">
+          <v-card>
+            <v-card-title class="py-2">
+              <v-icon class="mr-2">mdi-link</v-icon>
+              Follow Details
+              <v-spacer></v-spacer>
+              <v-btn icon @click="followDialog = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <div id="follow-details" style="height: 400px;"></div>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                color="primary"
+                @click="runSelectedFollow"
+                :disabled="isRunning"
+              >
+                Run This Task
+              </v-btn>
+              <v-btn
+                variant="text"
+                @click="followDialog = false"
+              >
+                Close
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- ローディングオーバーレイ -->
+        <v-overlay
+          :model-value="isRunning || isSaving || isSavingTask"
+          class="align-center justify-center"
+        >
+          <v-progress-circular
+            indeterminate
+            size="64"
+          ></v-progress-circular>
+        </v-overlay>
+
+        <!-- スクリプト保存ボタン（右下に固定表示） -->
+        <v-btn
+          id="save-script-btn"
+          class="save-script-btn"
+          color="success"
+          prepend-icon="mdi-content-save"
+          @click.prevent=""
+          :loading="isSaving"
+          :disabled="isSaving"
+          style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;"
+          size="large"
+          elevation="3"
+        >
+          Save
+        </v-btn>
+
+        <!-- スナックバー -->
+        <v-snackbar
+          v-model="snackbar.show"
+          :color="snackbar.color"
+          :timeout="snackbar.timeout"
+          location="top"
+          variant="elevated"
+        >
+          ${ snackbar.text }
+          <template v-slot:actions>
+            <v-btn
+              variant="text"
+              @click="snackbar.show = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+      </v-app>
+    </div>
+
+    <script>
+      // 初期データ
+      var project_name = "{{ project_name|safe }}";
+      var task_content = {{ task | tojson | safe }};
+      var script_content = {{ script | tojson | safe }};
+
+      // プロジェクト名を設定
+      document.getElementById('project-name').textContent = project_name;
+
+      // グローバル変数でCodeMirrorエディタを保持
+      window.pythonEditorInstance = null;
+
+      // スクリプトを直接保存する関数
+      window.saveScriptDirectly = function() {
+        console.log('saveScriptDirectly called');
+
+        // グローバル変数からCodeMirrorエディタを取得
+        const pythonEditor = window.pythonEditorInstance;
+        if (!pythonEditor) {
+          console.error('Python editor not found in saveScriptDirectly');
+          alert('Python editor not found. Please wait for the editor to initialize and try again.');
+          return;
+        }
+
+        try {
+          // スクリプトを取得
+          const script = pythonEditor.getValue();
+          console.log('Script value in saveScriptDirectly:', script.substring(0, 100) + '...');
+
+          // フォームデータを作成
+          const formData = new FormData();
+          formData.append('script', script);
+
+          // デバッグ用にフォームデータの内容を確認
+          for (const pair of formData.entries()) {
+            console.log('FormData entry in saveScriptDirectly:', pair[0], pair[1].substring(0, 100) + '...');
+          }
+
+          // XMLHttpRequestを使用してスクリプトを送信
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', window.location.pathname + '/save', true);
+
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              console.log('Script saved successfully (XHR):', xhr.responseText);
+              alert('Script saved successfully');
+            } else {
+              console.error('Error saving script (XHR):', xhr.status, xhr.responseText);
+              alert('Error saving script: ' + xhr.status + ' - ' + xhr.responseText);
+            }
+          };
+
+          xhr.onerror = function() {
+            console.error('Error saving script (XHR): Network error');
+            alert('Error saving script: Network error');
+          };
+
+          // スクリプトを送信
+          xhr.send(formData);
+          console.log('XHR request sent with FormData');
+        } catch (error) {
+          console.error('Error in saveScriptDirectly:', error);
+          alert('Error saving script: ' + error.message);
+        }
+      };
+
+
+
+      const { createApp } = Vue;
+      const vuetify = Vuetify.createVuetify({
+        theme: {
+          defaultTheme: 'light'
+        }
+      });
+
+      const app = createApp({
+        delimiters: ['${', '}'],
+        data() {
+          return {
+            activeTab: 'web',
+            showCssHelper: false,
+            cssSelector: '',
+            follows: [],
+            messages: [],
+            logs: '',
+            isRunning: false,
+            isSaving: false,
+            isSavingTask: false,
+            followDialog: false,
+            selectedFollow: null,
+            selectedFollowIndex: -1,
+            projectName: project_name,
+            snackbar: {
+              show: false,
+              text: '',
+              color: 'success',
+              timeout: 3000
+            },
+            // リサイズ関連の状態
+            isResizing: false,
+            resizeType: null, // 'task', 'columns'
+            startY: 0,
+            startX: 0,
+            startHeight: 0,
+            startWidth: 0,
+            leftColWidth: 50, // 左カラムの幅の初期値（％）
+            taskEditorHeight: 200 // タスクエディタの高さの初期値（px）
+          }
+        },
+
+        mounted() {
+          // Initialize editors
+          this.initEditors();
+
+          // リサイズハンドルの初期設定
+          this.$nextTick(() => {
+            // タスクエディタの初期高さを設定
+            const taskEditor = document.getElementById('task-editor');
+            if (taskEditor) {
+              taskEditor.style.height = this.taskEditorHeight + 'px';
+              if (this.taskEditor) {
+                this.taskEditor.setSize(null, this.taskEditorHeight);
+              }
+            }
+
+            // 左右のカラムの初期幅を設定
+            const leftCol = document.querySelector('.v-row > .v-col:first-child');
+            const rightCol = document.querySelector('.v-row > .v-col:last-child');
+
+            if (leftCol && rightCol) {
+              leftCol.style.width = this.leftColWidth + '%';
+              leftCol.style.maxWidth = this.leftColWidth + '%';
+              leftCol.style.flexBasis = this.leftColWidth + '%';
+
+              rightCol.style.width = (100 - this.leftColWidth) + '%';
+              rightCol.style.maxWidth = (100 - this.leftColWidth) + '%';
+              rightCol.style.flexBasis = (100 - this.leftColWidth) + '%';
+            }
+          });
+        },
+
+        watch: {
+          activeTab(newVal) {
+            if (newVal === 'web') {
+              setTimeout(setupCssSelectorHelper, 500);
+            }
+          },
+          showCssHelper(newVal) {
+            if (newVal) {
+              setTimeout(setupCssSelectorHelper, 500);
+            }
+          }
+        },
+
+        methods: {
+          initEditors() {
+            console.log('initEditors called');
+            try {
+              // Wait for DOM to be ready
+              this.$nextTick(() => {
+                console.log('DOM ready, initializing editors');
+
+                // Check if elements exist
+                const taskEditorEl = document.getElementById('task-editor');
+                const pythonEditorEl = document.getElementById('python-editor');
+                const followDetailsEl = document.getElementById('follow-details');
+
+                console.log('Elements found:', {
+                  taskEditorEl: !!taskEditorEl,
+                  pythonEditorEl: !!pythonEditorEl,
+                  followDetailsEl: !!followDetailsEl
+                });
+
+                // Task Editor
+                if (taskEditorEl) {
+                  this.taskEditor = CodeMirror(taskEditorEl, {
+                    value: JSON.stringify(task_content, null, 2),
+                    mode: 'application/json',
+                    lineNumbers: true,
+                    styleActiveLine: true,
+                    tabSize: 2
+                  });
+                  console.log('Task editor initialized');
+                }
+
+                // Python Editor
+                if (pythonEditorEl) {
+                  this.pythonEditor = CodeMirror(pythonEditorEl, {
+                    value: script_content,
+                    mode: 'text/x-python',
+                    lineNumbers: true,
+                    styleActiveLine: true,
+                    tabSize: 4,
+                    indentUnit: 4
+                  });
+                  // グローバル変数に保存
+                  window.pythonEditorInstance = this.pythonEditor;
+                  console.log('Python editor initialized and saved to global variable');
+                }
+
+                // Follow Details Editor
+                if (followDetailsEl) {
+                  this.followDetailsEditor = CodeMirror(followDetailsEl, {
+                    value: '',
+                    mode: 'application/json',
+                    lineNumbers: true,
+                    readOnly: true,
+                    tabSize: 2
+                  });
+                  console.log('Follow details editor initialized');
+                }
+              });
+            } catch (e) {
+              console.error('Error initializing CodeMirror:', e);
+            }
+          },
+
+
+
+          runTask() {
+            this.isRunning = true;
+            this.follows = [];
+            this.messages = [];
+            this.logs = '';
+
+            // Get task and script values
+            const task = this.taskEditor.getValue();
+            const script = this.pythonEditor.getValue();
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('task', task);
+            formData.append('script', script);
+
+            // Send request
+            fetch(window.location.pathname + '/run', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              // Handle follows
+              if (data.follows) {
+                this.follows = data.follows;
+              }
+
+              // Handle messages
+              if (data.messages) {
+                this.messages = data.messages;
+              }
+
+              // Handle logs
+              if (data.logs) {
+                this.logs = data.logs;
+                const logsContent = document.getElementById('logs-content');
+                if (logsContent) {
+                  logsContent.textContent = data.logs;
+                }
+              }
+
+              // Handle HTML content
+              if (data.fetch_result && data.fetch_result.content) {
+                // Set HTML content
+                const htmlContent = document.getElementById('html-content');
+                if (htmlContent) {
+                  htmlContent.innerHTML = '<pre>' + this.escapeHtml(data.fetch_result.content) + '</pre>';
+                }
+
+                // Set iframe content
+                const iframeBox = document.getElementById('iframe-box');
+                if (iframeBox) {
+                  iframeBox.innerHTML = '';
+                  const iframe = document.createElement('iframe');
+                  iframe.style.width = '100%';
+                  iframe.style.height = '100%';
+                  iframe.style.border = 'none';
+                  iframe.sandbox = 'allow-same-origin allow-scripts';
+                  iframeBox.appendChild(iframe);
+
+                  const doc = iframe.contentWindow.document;
+                  doc.open();
+                  doc.write(data.fetch_result.content);
+                  doc.close();
+                }
+              }
+
+              // Switch to appropriate tab
+              if (this.follows.length > 0) {
+                this.activeTab = 'follows';
+              } else if (data.fetch_result && data.fetch_result.content) {
+                this.activeTab = 'web';
+              }
+            })
+            .catch(error => {
+              console.error('Error running task:', error);
+              alert('Error running task: ' + error.message);
+            })
+            .finally(() => {
+              this.isRunning = false;
+            });
+          },
+
+          saveScript() {
+            console.log('saveScript called');
+            this.isSaving = true;
+
+            // Get script value
+            const script = this.pythonEditor.getValue();
+            console.log('Script value:', script.substring(0, 100) + '...');
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('script', script);
+
+            // Send request
+            const url = window.location.pathname + '/save';
+            console.log('Sending request to:', url);
+
+            // デバッグ用にリクエストボディを表示
+            for (const pair of formData.entries()) {
+              console.log(pair[0] + ': ' + (pair[1].length > 100 ? pair[1].substring(0, 100) + '...' : pair[1]));
+            }
+
+            // ヘッダーを追加
+            const headers = {
+              'X-Requested-With': 'XMLHttpRequest'
+            };
+
+            fetch(url, {
+              method: 'POST',
+              headers: headers,
+              body: formData
+            })
+            .then(response => {
+              console.log('Response status:', response.status);
+              return response.text().then(text => {
+                console.log('Response text:', text);
+                if (response.ok) {
+                  console.log('Script saved successfully');
+                  alert('Script saved successfully'); // 一時的にalertを使用
+                  this.showSnackbar('Script saved successfully', 'success');
+                } else {
+                  throw new Error('Failed to save script: ' + response.status + ' - ' + text);
+                }
+              });
+            })
+            .catch(error => {
+              console.error('Error saving script:', error);
+              alert('Error saving script: ' + error.message); // 一時的にalertを使用
+              this.showSnackbar('Error saving script: ' + error.message, 'error');
+            })
+            .finally(() => {
+              this.isSaving = false;
+            });
+          },
+
+          saveTask() {
+            console.log('saveTask called');
+            this.isSavingTask = true;
+
+            // Get task value
+            const task = this.taskEditor.getValue();
+            console.log('Task value:', task.substring(0, 100) + '...');
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('task', task);
+
+            // Send request
+            const url = window.location.pathname + '/task/save';
+            console.log('Sending request to:', url);
+
+            // デバッグ用にリクエストボディを表示
+            for (const pair of formData.entries()) {
+              console.log(pair[0] + ': ' + (pair[1].length > 100 ? pair[1].substring(0, 100) + '...' : pair[1]));
+            }
+
+            // ヘッダーを追加
+            const headers = {
+              'X-Requested-With': 'XMLHttpRequest'
+            };
+
+            fetch(url, {
+              method: 'POST',
+              headers: headers,
+              body: formData
+            })
+            .then(response => {
+              console.log('Response status:', response.status);
+              return response.text().then(text => {
+                console.log('Response text:', text);
+                if (response.ok) {
+                  console.log('Task saved successfully');
+                  alert('Task saved successfully'); // 一時的にalertを使用
+                  this.showSnackbar('Task saved successfully', 'success');
+                } else {
+                  throw new Error('Failed to save task: ' + response.status + ' - ' + text);
+                }
+              });
+            })
+            .catch(error => {
+              console.error('Error saving task:', error);
+              alert('Error saving task: ' + error.message); // 一時的にalertを使用
+              this.showSnackbar('Error saving task: ' + error.message, 'error');
+            })
+            .finally(() => {
+              this.isSavingTask = false;
+            });
+          },
+
+          showSnackbar(text, color = 'success') {
+            console.log('Showing snackbar:', text, color);
+            this.snackbar.text = text;
+            this.snackbar.color = color;
+            this.snackbar.show = true;
+
+            // スナックバーが表示されない場合の対策として、強制的に再設定
+            setTimeout(() => {
+              if (!this.snackbar.show) {
+                console.log('Forcing snackbar to show');
+                this.snackbar.show = true;
+              }
+            }, 100);
+          },
+
+          showFollowDetails(follow, index) {
+            this.selectedFollow = follow;
+            this.selectedFollowIndex = index;
+            this.followDetailsEditor.setValue(JSON.stringify(follow, null, 2));
+            this.followDialog = true;
+          },
+
+          runFollow(follow) {
+            this.taskEditor.setValue(JSON.stringify(follow, null, 2));
+            this.runTask();
+          },
+
+          runSelectedFollow() {
+            if (this.selectedFollow) {
+              this.runFollow(this.selectedFollow);
+              this.followDialog = false;
+            }
+          },
+
+          copyCssSelector() {
+            if (!this.cssSelector) return;
+
+            navigator.clipboard.writeText(this.cssSelector)
+              .then(() => {
+                alert('CSS selector copied to clipboard');
+              })
+              .catch(err => {
+                console.error('Failed to copy CSS selector:', err);
+                alert('Failed to copy CSS selector');
+              });
+          },
+
+          addToEditor() {
+            if (!this.cssSelector) return;
+
+            const script = this.pythonEditor.getValue();
+            const newScript = script + '\n\n# CSS Selector: ' + this.cssSelector;
+            this.pythonEditor.setValue(newScript);
+          },
+
+          escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+          },
+
+          // リサイズ関連のメソッド
+          startResizeTaskEditor(e) {
+            this.isResizing = true;
+            this.resizeType = 'task';
+            this.startY = e.clientY;
+            this.startHeight = this.taskEditorHeight;
+
+            // メソッドをバインドしてthisの参照を保持
+            document.addEventListener('mousemove', this.resizeTaskEditor.bind(this));
+            document.addEventListener('mouseup', this.stopResize.bind(this));
+
+            // ドラッグ中はテキスト選択を無効化
+            document.body.style.userSelect = 'none';
+          },
+
+          resizeTaskEditor(e) {
+            if (!this.isResizing || this.resizeType !== 'task') return;
+
+            const deltaY = e.clientY - this.startY;
+            const newHeight = Math.max(100, this.startHeight + deltaY); // 最小高さは100px
+
+            this.taskEditorHeight = newHeight;
+            document.getElementById('task-editor').style.height = newHeight + 'px';
+
+            // CodeMirrorの高さも更新
+            if (this.taskEditor) {
+              this.taskEditor.setSize(null, newHeight);
+            }
+          },
+
+          startResizeColumns(e) {
+            console.log('startResizeColumns called');
+            this.isResizing = true;
+            this.resizeType = 'columns';
+            this.startX = e.clientX;
+
+            // 現在の左カラムの幅を取得
+            const container = document.querySelector('.v-container');
+            if (!container) {
+              console.error('Container element not found');
+              return;
+            }
+
+            const containerWidth = container.clientWidth;
+            console.log('Container width:', containerWidth);
+
+            // 明示的なクラスとIDを使用
+            let leftCol = document.getElementById('left-column');
+            if (!leftCol) {
+              console.error('Left column element not found (by ID)');
+              // 代替のセレクタを試す
+              const altLeftCol = document.querySelector('.left-column');
+              if (!altLeftCol) {
+                console.error('Left column element not found (by class)');
+                return;
+              }
+              console.log('Found left column by class');
+              leftCol = altLeftCol;
+            } else {
+              console.log('Found left column by ID');
+            }
+
+            const leftColWidth = leftCol.clientWidth;
+            console.log('Left column width:', leftColWidth);
+
+            this.startWidth = (leftColWidth / containerWidth) * 100;
+            console.log('Start width (%):', this.startWidth);
+
+            // メソッドをバインドしてthisの参照を保持
+            document.addEventListener('mousemove', this.resizeColumns.bind(this));
+            document.addEventListener('mouseup', this.stopResize.bind(this));
+
+            // ドラッグ中はテキスト選択を無効化
+            document.body.style.userSelect = 'none';
+          },
+
+          resizeColumns(e) {
+            if (!this.isResizing || this.resizeType !== 'columns') return;
+
+            const container = document.querySelector('.v-container');
+            if (!container) {
+              console.error('Container element not found in resizeColumns');
+              return;
+            }
+
+            const containerWidth = container.clientWidth;
+            const deltaX = e.clientX - this.startX;
+            const deltaPercent = (deltaX / containerWidth) * 100;
+
+            // 新しい幅を計算（20%から80%の間に制限）
+            const newLeftWidth = Math.min(80, Math.max(20, this.startWidth + deltaPercent));
+            this.leftColWidth = newLeftWidth;
+
+            // 左右のカラムの幅を設定
+            let leftCol = document.getElementById('left-column');
+            let rightCol = document.getElementById('right-column');
+
+            if (!leftCol) {
+              console.error('Left column element not found (by ID) in resizeColumns');
+              // 代替のセレクタを試す
+              leftCol = document.querySelector('.left-column');
+              if (!leftCol) {
+                console.error('Left column element not found (by class) in resizeColumns');
+                return;
+              }
+              console.log('Found left column by class in resizeColumns');
+            } else {
+              console.log('Found left column by ID in resizeColumns');
+            }
+
+            if (!rightCol) {
+              console.error('Right column element not found (by ID) in resizeColumns');
+              // 代替のセレクタを試す
+              rightCol = document.querySelector('.right-column');
+              if (!rightCol) {
+                console.error('Right column element not found (by class) in resizeColumns');
+                return;
+              }
+              console.log('Found right column by class in resizeColumns');
+            } else {
+              console.log('Found right column by ID in resizeColumns');
+            }
+
+            leftCol.style.width = newLeftWidth + '%';
+            leftCol.style.maxWidth = newLeftWidth + '%';
+            leftCol.style.flexBasis = newLeftWidth + '%';
+
+            rightCol.style.width = (100 - newLeftWidth) + '%';
+            rightCol.style.maxWidth = (100 - newLeftWidth) + '%';
+            rightCol.style.flexBasis = (100 - newLeftWidth) + '%';
+
+            // CodeMirrorエディタをリサイズ
+            if (this.taskEditor && this.pythonEditor) {
+              this.taskEditor.refresh();
+              this.pythonEditor.refresh();
+            }
+          },
+
+          stopResize() {
+            this.isResizing = false;
+
+            // バインドされたメソッドは削除できないので、フラグで制御する
+            // document.removeEventListener('mousemove', this.resizeTaskEditor.bind(this));
+            // document.removeEventListener('mousemove', this.resizeColumns.bind(this));
+            // document.removeEventListener('mouseup', this.stopResize.bind(this));
+
+            // テキスト選択を再度有効化
+            document.body.style.userSelect = '';
+
+            // CodeMirrorエディタをリフレッシュ
+            if (this.taskEditor && this.pythonEditor) {
+              this.taskEditor.refresh();
+              this.pythonEditor.refresh();
+            }
+          }
+        }
+      });
+
+      app.use(vuetify);
+      app.mount('#app');
+
+      // CSS Selector Helper implementation
+      function setupCssSelectorHelper() {
+        $('#iframe-box iframe').contents().on('click', function(e) {
+          if (!app._instance.proxy.showCssHelper) return;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          var path = '';
+          var element = e.target;
+
+          while (element && element.tagName) {
+            var selector = element.tagName.toLowerCase();
+
+            if (element.id) {
+              selector += '#' + element.id;
+              path = selector + (path ? ' > ' + path : '');
+              break;
+            } else {
+              var siblings = Array.from(element.parentNode.children).filter(
+                child => child.tagName === element.tagName
+              );
+
+              if (siblings.length > 1) {
+                var index = siblings.indexOf(element) + 1;
+                selector += ':nth-of-type(' + index + ')';
+              }
+
+              path = selector + (path ? ' > ' + path : '');
+              element = element.parentNode;
+            }
+          }
+
+          app._instance.proxy.cssSelector = path;
+        });
+      }
+
+      // jQuery for CSS selector helper
+      $(document).ready(function() {
+        // Initial setup
+        setTimeout(setupCssSelectorHelper, 1000);
+
+        // スクリプト保存ボタンのクリックイベントを直接処理
+        $('#save-script-btn').on('click', function() {
+          console.log('Save script button clicked directly (jQuery)');
+          // グローバル関数を呼び出す
+          if (window.saveScriptDirectly) {
+            window.saveScriptDirectly();
+          } else {
+            console.error('saveScriptDirectly function not found');
+            alert('Save function not available. Please refresh the page and try again.');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8 syntax=htmldjango: -->

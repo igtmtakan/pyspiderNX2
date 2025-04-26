@@ -1,0 +1,138 @@
+/* index-v2.less - Modern UI styles for PySpider dashboard */
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.fill-height {
+  height: 100%;
+}
+
+/* Project card hover effect */
+.v-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+/* Status colors */
+.status-running {
+  color: #4caf50;
+}
+
+.status-paused {
+  color: #ff9800;
+}
+
+.status-debug {
+  color: #2196f3;
+}
+
+.status-stopped {
+  color: #f44336;
+}
+
+.status-checking {
+  color: #9c27b0;
+}
+
+/* Project list hover effect */
+.v-data-table .v-data-table__tr {
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+}
+
+/* Dark mode adjustments */
+.v-theme--dark {
+  .v-data-table .v-data-table__tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .v-data-table .v-data-table__tr {
+    display: block;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+  
+  .v-data-table .v-data-table__td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    
+    &:before {
+      content: attr(data-label);
+      font-weight: 600;
+      margin-right: 16px;
+    }
+  }
+  
+  .v-theme--dark .v-data-table .v-data-table__tr {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Project statistics cards */
+.stat-card {
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .stat-icon {
+    font-size: 36px;
+    margin-right: 16px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .stat-label {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Dark mode for stat cards */
+.v-theme--dark {
+  .stat-card .stat-label {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* Snackbar styling */
+.v-snackbar {
+  border-radius: 8px;
+  
+  &.v-snackbar--success {
+    background-color: #4caf50;
+  }
+  
+  &.v-snackbar--error {
+    background-color: #f44336;
+  }
+  
+  &.v-snackbar--info {
+    background-color: #2196f3;
+  }
+  
+  &.v-snackbar--warning {
+    background-color: #ff9800;
+  }
+}

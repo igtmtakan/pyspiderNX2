@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Run Result - pyspider</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="pyspider run result">
+    <meta name="author" content="binux">
+    <!-- Bootstrap 3.4.1 CSS (latest stable for Bootstrap 3) -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <!-- Font Awesome 6 (latest) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- jQuery 1.12.4 (compatible with X-Editable) -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1>Run Result for Project: {{ project_name }}</h1>
+          {% if result %}
+            <div class="alert alert-success">
+              <strong>Success!</strong> The task has been submitted successfully.
+            </div>
+          {% else %}
+            <div class="alert alert-danger">
+              <strong>Error!</strong> {{ error }}
+            </div>
+          {% endif %}
+          <p>
+            <a href="/" class="btn btn-primary">Back to Dashboard</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 3.4.1 JS (latest stable for Bootstrap 3) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+    <script>
+      // Auto redirect after 2 seconds
+      setTimeout(function() {
+        window.location.href = '/';
+      }, 2000);
+    </script>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8 syntax=htmldjango: -->

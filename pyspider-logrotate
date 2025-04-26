@@ -1,0 +1,9 @@
+/home/igtmtakan/workplace/python/pyspiderNx/logs/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0644 igtmtakan igtmtakan
+}

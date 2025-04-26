@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - pyspider</title>
+
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.3.67/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .product-card {
+            margin-bottom: 16px;
+        }
+        .url-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        .product-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+        }
+        .product-details-modal {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .search-container {
+            max-width: 500px;
+            margin: 0 auto 20px auto;
+        }
+    </style>
+
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary">
+                <v-app-bar-title>製品一覧</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" href="/" prepend-icon="mdi-home">
+                    ホーム
+                </v-btn>
+            </v-app-bar>
+
+            <v-main>
+                <v-container>
+                    <div class="search-container">
+                        <v-text-field
+                            v-model="search"
+                            label="検索"
+                            prepend-inner-icon="mdi-magnify"
+                            single-line
+                            hide-details
+                            variant="outlined"
+                            density="compact"
+                        ></v-text-field>
+                    </div>
+
+                    <v-card>
+                        <v-card-title>Amazon製品データ</v-card-title>
+                        <v-card-text>
+                            <v-data-table
+                                :headers="headers"
+                                :items="products"
+                                :search="search"
+                                :items-per-page="10"
+                                :loading="loading"
+                                class="elevation-1"
+                            >
+                                <!-- 製品名 -->
+                                <template v-slot:item.title="{ item }">
+                                    <div class="d-flex align-center">
+                                        <img 
+                                            v-if="item.raw.image" 
+                                            :src="item.raw.image" 
+                                            class="product-image mr-2"
+                                            @error="handleImageError"
+                                        >
+                                        {{ item.raw.title }}
+                                    </div>
+                                </template>
+
+                                <!-- 価格 -->
+                                <template v-slot:item.price="{ item }">
+                                    <span v-if="item.raw.price">¥{{ item.raw.price }}</span>
+                                    <span v-else>N/A</span>
+                                </template>
+
+                                <!-- 評価 -->
+                                <template v-slot:item.rating="{ item }">
+                                    <div v-if="item.raw.rating" class="d-flex align-center">
+                                        {{ item.raw.rating }}/5
+                                        <v-rating
+                                            :model-value="parseFloat(item.raw.rating)"
+                                            color="amber"
+                                            density="compact"
+                                            half-increments
+                                            readonly
+                                            size="small"
+                                            class="ml-2"
+                                        ></v-rating>
+                                    </div>
+                                    <span v-else>N/A</span>
+                                </template>
+
+                                <!-- URL -->
+                                <template v-slot:item.url="{ item }">
+                                    <v-btn
+                                        v-if="item.raw.url"
+                                        :href="item.raw.url"
+                                        target="_blank"
+                                        variant="text"
+                                        prepend-icon="mdi-open-in-new"
+                                        size="small"
+                                    >
+                                        リンク
+                                    </v-btn>
+                                    <span v-else>N/A</span>
+                                </template>
+
+                                <!-- 詳細 -->
+                                <template v-slot:item.actions="{ item }">
+                                    <v-btn
+                                        color="info"
+                                        variant="text"
+                                        prepend-icon="mdi-information"
+                                        size="small"
+                                        @click="showProductDetails(item.raw)"
+                                    >
+                                        詳細
+                                    </v-btn>
+                                </template>
+                            </v-data-table>
+                        </v-card-text>
+                    </v-card>
+                </v-container>
+            </v-main>
+
+            <!-- 製品詳細ダイアログ -->
+            <v-dialog v-model="detailsDialog" max-width="800px">
+                <v-card v-if="selectedProduct">
+                    <v-card-title>
+                        {{ selectedProduct.title || '製品詳細' }}
+                    </v-card-title>
+                    <v-card-text>
+                        <div class="product-details-modal">
+                            <v-row v-if="selectedProduct.image">
+                                <v-col cols="12" md="4">
+                                    <v-img
+                                        :src="selectedProduct.image"
+                                        max-height="300"
+                                        contain
+                                        @error="handleImageError"
+                                    ></v-img>
+                                </v-col>
+                                <v-col cols="12" md="8">
+                                    <v-list>
+                                        <v-list-item v-for="(value, key) in selectedProduct" :key="key" v-if="key !== 'image' && key !== 'title'">
+                                            <template v-slot:prepend>
+                                                <strong>{{ key }}:</strong>
+                                            </template>
+                                            <v-list-item-title v-if="key === 'url'">
+                                                <a :href="value" target="_blank">{{ value }}</a>
+                                            </v-list-item-title>
+                                            <v-list-item-title v-else>
+                                                {{ value }}
+                                            </v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-col>
+                            </v-row>
+                            <v-list v-else>
+                                <v-list-item v-for="(value, key) in selectedProduct" :key="key" v-if="key !== 'title'">
+                                    <template v-slot:prepend>
+                                        <strong>{{ key }}:</strong>
+                                    </template>
+                                    <v-list-item-title v-if="key === 'url'">
+                                        <a :href="value" target="_blank">{{ value }}</a>
+                                    </v-list-item-title>
+                                    <v-list-item-title v-else>
+                                        {{ value }}
+                                    </v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </div>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="primary" @click="detailsDialog = false">閉じる</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+        </v-app>
+    </div>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    products: [],
+                    loading: true,
+                    search: '',
+                    headers: [
+                        { title: '製品名', key: 'title', sortable: true },
+                        { title: '価格', key: 'price', sortable: true },
+                        { title: '評価', key: 'rating', sortable: true },
+                        { title: 'URL', key: 'url', sortable: false },
+                        { title: '詳細', key: 'actions', sortable: false }
+                    ],
+                    detailsDialog: false,
+                    selectedProduct: null
+                }
+            },
+            mounted() {
+                this.fetchProducts();
+            },
+            methods: {
+                fetchProducts() {
+                    this.loading = true;
+                    fetch('/products')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                this.products = data.data;
+                            } else {
+                                console.error('データの取得に失敗しました:', data.message);
+                                alert('データの取得に失敗しました: ' + data.message);
+                            }
+                            this.loading = false;
+                        })
+                        .catch(error => {
+                            console.error('エラー:', error);
+                            alert('エラーが発生しました: ' + error);
+                            this.loading = false;
+                        });
+                },
+                showProductDetails(product) {
+                    this.selectedProduct = product;
+                    this.detailsDialog = true;
+                },
+                handleImageError(e) {
+                    e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
+                }
+            }
+        });
+
+        const vuetify = Vuetify.createVuetify({
+            theme: {
+                defaultTheme: 'light'
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

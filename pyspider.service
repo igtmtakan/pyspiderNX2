@@ -1,0 +1,13 @@
+[Unit]
+Description=PySpider Service
+After=network.target redis.service
+
+[Service]
+User=igtmtakan
+WorkingDirectory=/home/igtmtakan/workplace/python/pyspiderNx
+ExecStart=/bin/bash start_pyspider.sh
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

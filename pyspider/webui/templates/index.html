@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PySpider</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vuetify@3/dist/vuetify.min.js"></script>
+    <link href="https://unpkg.com/vuetify@3/dist/vuetify.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <v-container>
+                    <h1>{{ '{{ message }}' }}</h1>
+                    <v-card>
+                        <v-card-title>Projects</v-card-title>
+                        <v-card-text>
+                            <div v-if="projects.length === 0">
+                                No projects found. Create a new project to get started.
+                            </div>
+                            <v-list v-else>
+                                <v-list-item v-for="project in projects" :key="project.name">
+                                    <v-list-item-title>{{ '{{ project.name }}' }}</v-list-item-title>
+                                    <v-list-item-subtitle>Status: {{ '{{ project.status }}' }}</v-list-item-subtitle>
+                                </v-list-item>
+                            </v-list>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn color="primary">
+                                Create New Project
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+    
+    <script>
+        window.projects = {{ projects | tojson | safe }};
+        console.log('Projects data:', window.projects);
+
+        const { createApp } = Vue;
+        const vuetify = Vuetify.createVuetify();
+
+        const app = createApp({
+            data() {
+                return {
+                    message: 'PySpider Dashboard',
+                    projects: window.projects || []
+                }
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

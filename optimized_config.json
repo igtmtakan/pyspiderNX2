@@ -1,0 +1,10 @@
+{
+  "fetcher": {
+    "optimize": true,
+    "memory_check_interval": 60,
+    "pool_check_interval": 30,
+    "max_memory_percent": 80,
+    "poolsize": 50,
+    "timeout": 60
+  }
+}

@@ -1,0 +1,510 @@
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+[I 250419 00:22:52 result_worker:49] result_worker starting...
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+[I 250419 00:22:52 processor:211] processor starting...
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+[I 250419 00:22:52 scheduler:675] scheduler starting...
+Error: Could not create web server listening on port 25555
+[I 250419 00:22:52 scheduler:126] project new updated, status:RUNNING, paused:False, 0 tasks
+[I 250419 00:22:52 scheduler:993] select new:_on_get_info data:,_on_get_info
+[I 250419 00:22:52 scheduler:126] project webshark updated, status:RUNNING, paused:False, 0 tasks
+[I 250419 00:22:52 scheduler:993] select webshark:_on_get_info data:,_on_get_info
+[I 250419 00:22:52 scheduler:614] in 5m: new:0,success:0,retry:0,failed:0
+[I 250419 00:22:52 scheduler:126] project baaramo updated, status:RUNNING, paused:False, 0 tasks
+[I 250419 00:22:52 scheduler:993] select baaramo:_on_get_info data:,_on_get_info
+[I 250419 00:22:52 scheduler:126] project popo updated, status:RUNNING, paused:False, 0 tasks
+[I 250419 00:22:52 scheduler:993] select popo:_on_get_info data:,_on_get_info
+[I 250419 00:22:52 scheduler:126] project jimmi updated, status:TODO, paused:False, 0 tasks
+[I 250419 00:22:52 scheduler:126] project mm updated, status:TODO, paused:False, 0 tasks
+[I 250419 00:22:52 scheduler:126] project kokoko updated, status:TODO, paused:False, 0 tasks
+Error: Could not create web server listening on port 25555
+Exception in thread Thread-2 (xmlrpc_run):
+Traceback (most recent call last):
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/threading.py", line 1041, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/threading.py", line 992, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/scheduler/scheduler.py", line 809, in xmlrpc_run
+    self.xmlrpc_server.listen(port=port, address=bind)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/tornado/tcpserver.py", line 183, in listen
+    sockets = bind_sockets(
+        port,
+    ...<4 lines>...
+        reuse_port=reuse_port,
+    )
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/tornado/netutil.py", line 162, in bind_sockets
+    sock.bind(sockaddr)
+    ~~~~~~~~~^^^^^^^^^^
+OSError: [Errno 98] Address already in use
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+[I 250419 00:22:52 tornado_fetcher:1063] fetcher starting...
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Exception in thread Thread-1 (xmlrpc_run):
+Traceback (most recent call last):
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/threading.py", line 1041, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/threading.py", line 992, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/tornado_fetcher.py", line 1141, in xmlrpc_run
+    self.xmlrpc_server.listen(port=port, address=bind)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/tornado/tcpserver.py", line 183, in listen
+    sockets = bind_sockets(
+        port,
+    ...<4 lines>...
+        reuse_port=reuse_port,
+    )
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/tornado/netutil.py", line 162, in bind_sockets
+    sock.bind(sockaddr)
+    ~~~~~~~~~^^^^^^^^^^
+OSError: [Errno 98] Address already in use
+Error: Could not create web server listening on port 25555
+[I 250419 00:22:52 tornado_fetcher:1147] on fetch data:{'taskid': '_on_get_info', 'project': 'new', 'url': 'data:,_on_get_info', 'status': 2, 'fetch': {'save': ['min_tick', 'retry_delay', 'crawl_config']}, 'process': {'callback': '_on_get_info'}, 'type': 1, 'group': None, 'project_md5sum': '2d0c2dae0c30582acd06ea0619515b6a', 'project_updatetime': 1744964890.135056}
+[I 250419 00:22:52 tornado_fetcher:359] [200] new:_on_get_info data:,_on_get_info 0s
+[I 250419 00:22:52 tornado_fetcher:1147] on fetch data:{'taskid': '_on_get_info', 'project': 'webshark', 'url': 'data:,_on_get_info', 'status': 2, 'fetch': {'save': ['min_tick', 'retry_delay', 'crawl_config']}, 'process': {'callback': '_on_get_info'}, 'type': 1, 'group': None, 'project_md5sum': '2d0c2dae0c30582acd06ea0619515b6a', 'project_updatetime': 1744970921.5150888}
+[I 250419 00:22:52 tornado_fetcher:359] [200] webshark:_on_get_info data:,_on_get_info 0s
+[I 250419 00:22:52 tornado_fetcher:1147] on fetch data:{'taskid': '_on_get_info', 'project': 'baaramo', 'url': 'data:,_on_get_info', 'status': 2, 'fetch': {'save': ['min_tick', 'retry_delay', 'crawl_config']}, 'process': {'callback': '_on_get_info'}, 'type': 1, 'group': None, 'project_md5sum': '2d0c2dae0c30582acd06ea0619515b6a', 'project_updatetime': 1744971440.501169}
+[I 250419 00:22:52 tornado_fetcher:359] [200] baaramo:_on_get_info data:,_on_get_info 0s
+[I 250419 00:22:52 tornado_fetcher:1147] on fetch data:{'taskid': '_on_get_info', 'project': 'popo', 'url': 'data:,_on_get_info', 'status': 2, 'fetch': {'save': ['min_tick', 'retry_delay', 'crawl_config']}, 'process': {'callback': '_on_get_info'}, 'type': 1, 'group': None, 'project_md5sum': '3de42612949d3fa9d34f9e53040536dd', 'project_updatetime': 1744972071.923642}
+[I 250419 00:22:52 tornado_fetcher:359] [200] popo:_on_get_info data:,_on_get_info 0s
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+Error: Could not create web server listening on port 25555
+[D 250419 00:22:53 project_module:145] project: new updated.
+[I 250419 00:22:53 processor:199] process new:_on_get_info data:,_on_get_info -> [200] len:12 -> result:None fol:0 msg:0 err:None
+[D 250419 00:22:53 project_module:145] project: webshark updated.
+[I 250419 00:22:53 processor:199] process webshark:_on_get_info data:,_on_get_info -> [200] len:12 -> result:None fol:0 msg:0 err:None
+[D 250419 00:22:53 project_module:145] project: baaramo updated.
+[I 250419 00:22:53 processor:199] process baaramo:_on_get_info data:,_on_get_info -> [200] len:12 -> result:None fol:0 msg:0 err:None
+[D 250419 00:22:53 project_module:145] project: popo updated.
+[I 250419 00:22:53 processor:199] process popo:_on_get_info data:,_on_get_info -> [200] len:12 -> result:None fol:0 msg:0 err:None
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}
+[I 250419 00:22:53 scheduler:360] new on_get_info {'min_tick': 0, 'retry_delay': {}, 'crawl_config': {'headers': {'User-Agent': 'GoogleBot'}, 'timeout': 3000, 'connect_timeout': 1000}}
+[I 250419 00:22:53 scheduler:360] webshark on_get_info {'min_tick': 0, 'retry_delay': {}, 'crawl_config': {'headers': {'User-Agent': 'GoogleBot'}, 'timeout': 3000, 'connect_timeout': 1000}}
+[I 250419 00:22:53 scheduler:360] baaramo on_get_info {'min_tick': 0, 'retry_delay': {}, 'crawl_config': {'headers': {'User-Agent': 'GoogleBot'}, 'timeout': 3000, 'connect_timeout': 1000}}
+[I 250419 00:22:53 scheduler:360] popo on_get_info {'min_tick': 0, 'retry_delay': {}, 'crawl_config': {'headers': {'User-Agent': 'GoogleBot'}, 'timeout': 3000, 'connect_timeout': 1000}}
+Error: Could not create web server listening on port 25555
+Traceback (most recent call last):
+  File "/home/igtmtakan/workplace/python/pyspiderNx/run.py", line 16, in <module>
+    main()
+    ~~~~^^
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/run.py", line 847, in main
+    cli()
+    ~~~^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 1675, in invoke
+    rv = super().invoke(ctx)
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/run.py", line 177, in cli
+    ctx.invoke(all)
+    ~~~~~~~~~~^^^^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/run.py", line 578, in all
+    ctx.invoke(webui, **webui_config)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/igtmtakan/.pyenv/versions/3.13.2/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/run.py", line 351, in webui
+    app = load_cls(None, None, webui_instance)
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/run.py", line 48, in load_cls
+    return utils.load_object(value)
+           ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/libs/utils.py", line 378, in load_object
+    module = __import__(module_name, globals(), locals(), [object_name])
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/webui/__init__.py", line 8, in <module>
+    from . import app, index, debug, task, result, login, products
+  File "/home/igtmtakan/workplace/python/pyspiderNx/pyspider/webui/products.py", line 48
+    +++
+SyntaxError: expected 'except' or 'finally' block
+Error: Could not create web server listening on port 25555
+Failed to start server: Error: listen EADDRINUSE: address already in use :::22222
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at Function.listen (/home/igtmtakan/workplace/python/pyspiderNx/node_modules/express/lib/application.js:618:24)
+    at Object.<anonymous> (/home/igtmtakan/workplace/python/pyspiderNx/pyspider/fetcher/puppeteer_fetcher.js:7:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 22222
+}

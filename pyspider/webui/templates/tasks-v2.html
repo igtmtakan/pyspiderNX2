@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - pyspider</title>
+
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.3.67/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .task-card {
+            margin-bottom: 8px;
+        }
+        .url-link {
+            text-decoration: none;
+            color: inherit;
+            word-break: break-all;
+        }
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        .status-chip {
+            min-width: 100px;
+            text-align: center;
+        }
+        .status-1 {
+            background-color: #2196F3 !important;
+            color: white !important;
+        }
+        .status-2 {
+            background-color: #4CAF50 !important;
+            color: white !important;
+        }
+        .status-3 {
+            background-color: #FFC107 !important;
+            color: black !important;
+        }
+        .status-4 {
+            background-color: #F44336 !important;
+            color: white !important;
+        }
+        .status-5 {
+            background-color: #9E9E9E !important;
+            color: white !important;
+        }
+        .time-info {
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 0.875rem;
+        }
+        .follows-badge {
+            margin-left: 8px;
+        }
+    </style>
+
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary" density="compact">
+                <v-app-bar-title>{% if project %}{{ project }} - {% endif %}Active Tasks</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-text-field
+                    v-model="search"
+                    append-icon="mdi-magnify"
+                    label="Search"
+                    hide-details
+                    density="compact"
+                    style="max-width: 300px;"
+                    class="mr-2"
+                ></v-text-field>
+                <v-select
+                    v-model="projectFilter"
+                    :items="projectOptions"
+                    label="Project"
+                    hide-details
+                    density="compact"
+                    style="max-width: 200px;"
+                ></v-select>
+            </v-app-bar>
+
+            <v-main>
+                <v-container>
+                    <v-list lines="two">
+                        {% for task in tasks | sort(reverse=True, attribute='updatetime') %}
+                        <v-list-item class="task-card">
+                            <template v-slot:prepend>
+                                {% if task.status %}
+                                <v-chip class="status-chip status-{{ task.status }}">{{ status_to_string(task.status) }}</v-chip>
+                                {% elif task.track %}
+                                <v-chip class="status-chip status-3">
+                                    {% set fetchok = task.track.fetch and task.track.fetch.ok %}
+                                    {% set processok = task.track.process and task.track.process.ok %}
+                                    {%- if not fetchok -%}
+                                    FETCH_ERROR
+                                    {%- elif not processok -%}
+                                    PROCESS_ERROR
+                                    {%- endif -%}
+                                </v-chip>
+                                {% else %}
+                                <v-chip class="status-chip status-4">ERROR</v-chip>
+                                {% endif %}
+                            </template>
+
+                            <v-list-item-title>
+                                <a class="url-link" href="/debug/{{ task.project }}?taskid={{ task.taskid }}" target="_blank">{{ task.project }}</a>
+                                &gt;
+                                <a class="url-link" href="/task-v2/{{ task.project }}:{{ task.taskid }}" title="{{ task.url }}" target="_blank">{{ task.url }}</a>
+                            </v-list-item-title>
+
+                            <v-list-item-subtitle>
+                                <span class="time-info">{{ task.updatetime | format_date }}</span>
+
+                                {% if task.track and task.track.fetch %}
+                                <span class="time-info ml-2">
+                                    {{- '%.1f' | format(task.track.fetch.time * 1000) }}+{{ '%.2f' | format(task.track.process.time * 1000 if task.track and task.track.process else 0) }}ms
+                                </span>
+                                {% endif %}
+
+                                {% if task.track and task.track.process and task.track.process.follows %}
+                                <v-chip
+                                    size="x-small"
+                                    color="primary"
+                                    class="follows-badge"
+                                >
+                                    +{{ task.track.process.follows | int }}
+                                </v-chip>
+                                {% endif %}
+                            </v-list-item-subtitle>
+
+                            <template v-slot:append>
+                                <v-btn
+                                    icon="mdi-open-in-new"
+                                    size="small"
+                                    variant="text"
+                                    color="primary"
+                                    href="{{ task.url }}"
+                                    target="_blank"
+                                    density="compact"
+                                ></v-btn>
+                            </template>
+                        </v-list-item>
+                        {% endfor %}
+                    </v-list>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    search: '',
+                    projectFilter: 'ALL',
+                    projectOptions: [
+                        { title: 'All Projects', value: 'ALL' },
+                        {% set projects = [] %}
+                        {% for task in tasks %}
+                        {% if task.project not in projects %}
+                        { title: '{{ task.project }}', value: '{{ task.project }}' },
+                        {% set _ = projects.append(task.project) %}
+                        {% endif %}
+                        {% endfor %}
+                    ]
+                }
+            },
+            computed: {
+                filteredTasks() {
+                    // This is just for demonstration - the actual filtering is done server-side
+                    return this.tasks;
+                }
+            },
+            methods: {
+                applyFilters() {
+                    let url = '/tasks-v2';
+                    const params = [];
+
+                    if (this.projectFilter !== 'ALL') {
+                        params.push(`project=${this.projectFilter}`);
+                    }
+
+                    if (params.length > 0) {
+                        url += '?' + params.join('&');
+                    }
+
+                    window.location.href = url;
+                }
+            }
+        });
+
+        const vuetify = Vuetify.createVuetify({
+            theme: {
+                defaultTheme: 'light'
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

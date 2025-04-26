@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<link href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+<link href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/default.min.css" rel="stylesheet">
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="{{ url_for('static', filename='selector_tester.js') }}"></script>
+<style>
+    .CodeMirror {
+        height: 400px;
+        border: 1px solid #ddd;
+    }
+    .selector-container {
+        margin-bottom: 20px;
+    }
+    .transformer-row {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 5px;
+    }
+    .transformer-params {
+        margin-top: 10px;
+    }
+    .param-input {
+        margin-bottom: 5px;
+    }
+    .preview-container {
+        margin-top: 20px;
+    }
+    .result-container {
+        margin-top: 20px;
+    }
+    .tab-content {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-top: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Selector Tester</h1>
+    <p class="lead">Test and debug selectors for web scraping</p>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">URL</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="input-group">
+                        <input type="text" id="url-input" class="form-control" placeholder="https://example.com/">
+                        <span class="input-group-btn">
+                            <button id="load-url" class="btn btn-primary">Load URL</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Selector</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="selector-container">
+                        <div class="form-group">
+                            <label for="selector-type">Selector Type</label>
+                            <select id="selector-type" class="form-control">
+                                <option value="css">CSS</option>
+                                <option value="xpath">XPath</option>
+                                <option value="css4">CSS4</option>
+                                <option value="regex">RegEx</option>
+                                <option value="jsonpath">JSONPath</option>
+                                <option value="jmespath">JMESPath</option>
+                                <option value="graphql">GraphQL</option>
+                                <option value="xquery">XQuery</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="selector-input">Selector</label>
+                            <input type="text" id="selector-input" class="form-control" placeholder="">
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="use-attribute"> Extract Attribute
+                                </label>
+                            </div>
+                            <input type="text" id="attribute-input" class="form-control" placeholder="href, src, etc.">
+                        </div>
+                    </div>
+                    
+                    <div class="transformers-section">
+                        <h4>Transformers</h4>
+                        <p class="text-muted">Apply transformations to the extracted data</p>
+                        
+                        <div id="transformers-container">
+                            <!-- Transformer rows will be added here -->
+                        </div>
+                        
+                        <button id="add-transformer" class="btn btn-default">
+                            <i class="fa fa-plus"></i> Add Transformer
+                        </button>
+                    </div>
+                    
+                    <div class="buttons-container" style="margin-top: 20px;">
+                        <button id="test-selector" class="btn btn-primary">Test Selector</button>
+                        <button id="save-selector" class="btn btn-success">Save Selector</button>
+                        <button id="load-selector" class="btn btn-info">Load Selector</button>
+                    </div>
+                    
+                    <div id="error-container" style="margin-top: 20px;">
+                        <!-- Error messages will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Result</h3>
+                </div>
+                <div class="panel-body">
+                    <div id="result-container" class="result-container">
+                        <textarea id="result-content"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Content Preview</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#html-preview" data-toggle="tab">HTML</a></li>
+                        <li><a href="#json-preview" data-toggle="tab">JSON</a></li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="html-preview">
+                            <textarea id="html-content"></textarea>
+                        </div>
+                        <div class="tab-pane" id="json-preview">
+                            <textarea id="json-content"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transformer template (hidden) -->
+<script type="text/template" id="transformer-template">
+    <div class="transformer-row">
+        <div class="row">
+            <div class="col-md-4">
+                <select class="form-control transformer-select">
+                    <option value="strip">Strip</option>
+                    <option value="lower">Lowercase</option>
+                    <option value="upper">Uppercase</option>
+                    <option value="title">Title Case</option>
+                    <option value="capitalize">Capitalize</option>
+                    <option value="int">Convert to Integer</option>
+                    <option value="float">Convert to Float</option>
+                    <option value="bool">Convert to Boolean</option>
+                    <option value="str">Convert to String</option>
+                    <option value="list">Convert to List</option>
+                    <option value="join">Join List</option>
+                    <option value="split">Split String</option>
+                    <option value="replace">Replace</option>
+                    <option value="regex_replace">Regex Replace</option>
+                    <option value="regex_extract">Regex Extract</option>
+                    <option value="length">Get Length</option>
+                    <option value="slice">Slice</option>
+                    <option value="first">Get First Item</option>
+                    <option value="last">Get Last Item</option>
+                    <option value="nth">Get Nth Item</option>
+                    <option value="unique">Get Unique Items</option>
+                    <option value="default">Set Default Value</option>
+                    <option value="if_none">Replace if None</option>
+                    <option value="if_empty">Replace if Empty</option>
+                    <option value="format_date">Format Date</option>
+                    <option value="format_datetime">Format DateTime</option>
+                </select>
+            </div>
+            <div class="col-md-7 transformer-params">
+                <!-- Parameters will be added here based on the transformer type -->
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-danger remove-transformer">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+{% endblock %}

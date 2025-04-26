@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools>=64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyspider"
+version = "0.5.0"
+description = "A Powerful Spider System in Python"
+readme = "README.md"
+authors = [
+    {name = "Roy Binux", email = "roy@binux.me"},
+]
+license = {text = "Apache License, Version 2.0"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Environment :: Web Environment",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "Flask>=3.0.2",
+    "Jinja2>=3.1.3",
+    "Werkzeug>=3.0.0",
+    "tornado>=6.4.0",
+    # six removed for Python 3.13 compatibility
+    "requests>=2.31.0",
+    "lxml>=5.1.0",
+    "pycurl>=7.45.3",
+    "PyYAML>=6.0.0",
+    "psutil>=7.0.0",
+    "SQLAlchemy>=2.0.28,<2.1.0",
+    "pymongo>=4.6.1",
+    "redis>=3.0.0,<4.0.0",
+    "mysql-connector-python>=8.3.0",
+    "pika>=1.3.2",
+    "amqp>=5.2.0",
+    "kombu>=5.3.5",
+    "celery>=5.3.0",
+    "elasticsearch>=8.12.1",
+    "pillow>=10.0.0",
+    "beautifulsoup4>=4.12.0",
+    "pyquery>=2.0.0",
+    "cssselect>=1.2.0",
+    "cryptography>=41.0.0",
+    "pyOpenSSL>=23.0.0",
+    "tblib>=3.0.0",
+    "click>=8.1.7",
+    "tldextract>=3.4.0",
+    "python-dateutil>=2.8.0",
+    "u-msgpack-python>=2.8.0",
+    "attrs>=23.0.0",
+    "jsonpath-ng>=1.5.0",
+    "propcache>=0.3.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "typing-extensions>=4.0.0",
+    "pandas>=2.0.0",
+    "chardet>=5.2.0",
+    "psycopg2>=2.9.9",
+    "wsgidav>=4.3.0",
+    "dicttoxml>=1.7.0",
+    "python-multipart>=0.0.6",
+    "Flask-Login>=0.6.3",
+    "flask-cors>=4.0.0",
+]
+
+[project.optional-dependencies]
+all = [
+    "mysql-connector-python>=8.3.0",
+    "pymongo>=4.6.1",
+    "psycopg2>=2.9.9",
+    "elasticsearch>=8.12.1",
+    "kombu>=5.3.5",
+    "amqp>=5.2.0",
+    "SQLAlchemy>=2.0.28,<2.1.0",
+    "pika>=1.3.2",
+    "playwright>=1.40.0",
+    "pyee>=11.0.0",
+    "pyppeteer>=1.0.0",
+    "websockets>=10.0.0",
+]
+test = [
+    "coverage>=7.4.1",
+    "Werkzeug>=3.0.1",
+    "httpbin>=0.10.0",
+    "pyproxy>=0.1.6",
+    "types-requests>=2.0.0,<2.32.0.20250000",
+    # types-six removed for Python 3.13 compatibility
+    "lxml-stubs>=0.4.0",
+]
+
+[project.scripts]
+pyspider = "pyspider.run:main"
+
+[tool.setuptools]
+packages = ["pyspider"]
+package-dir = {pyspider = "pyspider"}
+
+[tool.setuptools.package-data]
+pyspider = [
+    "logging.conf",
+    "fetcher/phantomjs_fetcher.js",
+    "fetcher/splash_fetcher.lua",
+    "webui/static/*.js",
+    "webui/static/*.css",
+    "webui/templates/*"
+]

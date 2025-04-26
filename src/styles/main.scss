@@ -1,0 +1,7 @@
+// Bootstrap 5 の新しいインポート方法
+@import "~bootstrap/scss/bootstrap";
+
+// カスタム変数のオーバーライド
+$primary: #007bff;
+$secondary: #6c757d;
+// ... その他のカスタマイズ

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - {{ project }} - pyspider</title>
+
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.3.67/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .result-card {
+            margin-bottom: 16px;
+        }
+        .url-link {
+            text-decoration: none;
+            color: inherit;
+            word-break: break-all;
+        }
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        .external-link {
+            color: #1976D2;
+        }
+        .json-content {
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+        .json-content.expanded {
+            max-height: none;
+        }
+        .json-content::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(transparent, white);
+        }
+        .json-content.expanded::after {
+            display: none;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary" density="compact">
+                <v-app-bar-title>{{ project }} - Results</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-btn-group>
+                    <v-btn
+                        href="/results/dump/{{ project }}.json"
+                        target="_blank"
+                        variant="text"
+                        prepend-icon="mdi-download"
+                    >
+                        JSON
+                    </v-btn>
+                    <v-btn
+                        href="/results/dump/{{ project }}.txt"
+                        target="_blank"
+                        variant="text"
+                    >
+                        URL-JSON
+                    </v-btn>
+                    <v-btn
+                        href="/results/dump/{{ project }}.csv"
+                        target="_blank"
+                        variant="text"
+                    >
+                        CSV
+                    </v-btn>
+                    <v-btn
+                        href="/results/dump/{{ project }}.xml"
+                        target="_blank"
+                        variant="text"
+                    >
+                        XML
+                    </v-btn>
+                </v-btn-group>
+            </v-app-bar>
+
+            <v-main>
+                <v-container>
+                    <v-table>
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th></th>
+                                {% for field in common_fields|sort %}
+                                <th>{{ field }}</th>
+                                {% endfor %}
+                                <th>...</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>
+                                    <a class="url-link" href="/task/{{ project }}:{{ result.taskid }}" target="_blank">
+                                        {{ result.url }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <v-btn
+                                        icon="mdi-open-in-new"
+                                        size="small"
+                                        variant="text"
+                                        color="primary"
+                                        href="{{ result.url }}"
+                                        target="_blank"
+                                        density="compact"
+                                    ></v-btn>
+                                </td>
+                                {% for field in common_fields|sort %}
+                                <td>
+                                    <div
+                                        class="json-content"
+                                        :class="{ expanded: expandedCells.includes('{{ result.taskid }}-{{ field }}') }"
+                                        @click="toggleExpand('{{ result.taskid }}-{{ field }}')"
+                                    >
+                                        {{ json.dumps(result.result_formated[field], ensure_ascii=False) }}
+                                    </div>
+                                </td>
+                                {% endfor %}
+                                <td>
+                                    <div
+                                        class="json-content"
+                                        :class="{ expanded: expandedCells.includes('{{ result.taskid }}-others') }"
+                                        @click="toggleExpand('{{ result.taskid }}-others')"
+                                    >
+                                        {{ json.dumps(result.others, ensure_ascii=False) }}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </v-table>
+
+                    <div class="pagination-container">
+                        <v-pagination
+                            v-model="page"
+                            :length="{{ total_page }}"
+                            :total-visible="7"
+                            @update:model-value="changePage"
+                        ></v-pagination>
+                    </div>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script>
+        {% set current_page = int(offset/limit) + (1 if offset%limit else 0) %}
+        {% set count = count if count is not none else 0 %}
+        {% set total_page = int(count/limit) + (1 if count%limit else 0) %}
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    page: {{ current_page }},
+                    expandedCells: []
+                }
+            },
+            methods: {
+                changePage(page) {
+                    window.location.href = `/result-v2/{{ project }}?offset=${(page-1)*{{ limit }}}&limit={{ limit }}`;
+                },
+                toggleExpand(cellId) {
+                    const index = this.expandedCells.indexOf(cellId);
+                    if (index === -1) {
+                        this.expandedCells.push(cellId);
+                    } else {
+                        this.expandedCells.splice(index, 1);
+                    }
+                }
+            }
+        });
+
+        const vuetify = Vuetify.createVuetify({
+            theme: {
+                defaultTheme: 'light'
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>
