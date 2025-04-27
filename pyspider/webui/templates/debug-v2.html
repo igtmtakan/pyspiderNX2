@@ -15,6 +15,7 @@
     <link href="{{ url_for('cdn', path='codemirror/5.20.2/codemirror.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('cdn', path='codemirror/5.20.2/addon/dialog/dialog.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('cdn', path='codemirror/5.20.2/addon/lint/lint.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('cdn', path='codemirror/5.20.2/addon/scroll/simplescrollbars.css') }}" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='debug.min.css') }}" rel="stylesheet">
     <style>
@@ -140,6 +141,7 @@
     <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/htmlmixed/htmlmixed.min.js') }}"></script>
     <script src="{{ url_for('cdn', path='codemirror/5.20.2/mode/python/python.min.js') }}"></script>
     <script src="{{ url_for('cdn', path='codemirror/5.20.2/addon/selection/active-line.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='codemirror/5.20.2/addon/scroll/simplescrollbars.js') }}"></script>
     <!-- debug.min.js is not compatible with Vue.js -->
   </head>
 
@@ -169,14 +171,15 @@
         <v-main>
           <v-container fluid class="fill-height pa-0">
             <v-row no-gutters class="fill-height">
-              <!-- 左側: タスクエディタと結果表示 -->
+              <!-- 左側: 結果表示 -->
               <v-col cols="12" md="6" class="fill-height d-flex flex-column left-column" id="left-column">
-                <v-card class="ma-2 flex-grow-0" elevation="2">
+                <v-card class="ma-2 flex-grow-1" elevation="2">
                   <v-card-title class="py-2">
-                    <v-icon class="mr-2">mdi-code-json</v-icon>
-                    Task Editor
+                    <v-icon class="mr-2">mdi-view-list</v-icon>
+                    Results
                     <v-spacer></v-spacer>
                     <v-btn
+                      v-if="activeTab === 'task'"
                       color="primary"
                       prepend-icon="mdi-play"
                       @click="runTask"
@@ -187,20 +190,12 @@
                     </v-btn>
                   </v-card-title>
                   <v-divider></v-divider>
-                  <v-card-text class="pa-0 position-relative">
-                    <div id="task-editor" style="height: 200px;"></div>
-                    <div class="resize-handle resize-handle-vertical" style="position: absolute; left: 0; right: 0; bottom: 0; height: 8px; cursor: row-resize; background-color: #e0e0e0; opacity: 0.5; z-index: 10;" @mousedown="startResizeTaskEditor"></div>
-                  </v-card-text>
-                </v-card>
-
-                <v-card class="ma-2 flex-grow-1" elevation="2">
-                  <v-card-title class="py-2">
-                    <v-icon class="mr-2">mdi-view-list</v-icon>
-                    Results
-                  </v-card-title>
-                  <v-divider></v-divider>
                   <v-card-text class="pa-0">
                     <v-tabs v-model="activeTab" bg-color="background">
+                      <v-tab value="task">
+                        <v-icon class="mr-2">mdi-code-json</v-icon>
+                        Task
+                      </v-tab>
                       <v-tab value="web">
                         <v-icon class="mr-2">mdi-web</v-icon>
                         Web
@@ -289,60 +284,82 @@
 
                       <!-- Follows タブ -->
                       <v-window-item value="follows">
-                        <v-list lines="two" class="follows-list">
-                          <v-list-item
-                            v-for="(follow, index) in follows"
-                            :key="index"
-                            :title="follow.process?.callback || 'unknown'"
-                            :subtitle="follow.url"
-                            class="follow-item"
-                          >
-                            <template v-slot:append>
-                              <v-btn
-                                icon
-                                size="small"
-                                color="primary"
-                                @click="runFollow(follow)"
-                                :disabled="isRunning"
-                                title="Run this task"
-                              >
-                                <v-icon>mdi-play</v-icon>
-                              </v-btn>
-                              <v-btn
-                                icon
-                                size="small"
-                                @click="showFollowDetails(follow, index)"
-                                title="Show details"
-                                class="ml-2"
-                              >
-                                <v-icon>mdi-dots-vertical</v-icon>
-                              </v-btn>
-                            </template>
-                          </v-list-item>
-                          <v-list-item v-if="follows.length === 0">
-                            <v-list-item-title>No follows found</v-list-item-title>
-                          </v-list-item>
-                        </v-list>
+                        <div style="height: 100%; overflow-y: auto;">
+                          <v-list lines="two" class="follows-list">
+                            <v-list-item
+                              v-for="(follow, index) in follows"
+                              :key="index"
+                              :title="follow.process?.callback || 'unknown'"
+                              :subtitle="follow.url"
+                              class="follow-item"
+                            >
+                              <template v-slot:append>
+                                <v-btn
+                                  icon
+                                  size="small"
+                                  color="primary"
+                                  @click="runFollow(follow)"
+                                  :disabled="isRunning"
+                                  title="Run this task"
+                                >
+                                  <v-icon>mdi-play</v-icon>
+                                </v-btn>
+                                <v-btn
+                                  icon
+                                  size="small"
+                                  @click="showFollowDetails(follow, index)"
+                                  title="Show details"
+                                  class="ml-2"
+                                >
+                                  <v-icon>mdi-dots-vertical</v-icon>
+                                </v-btn>
+                              </template>
+                            </v-list-item>
+                            <v-list-item v-if="follows.length === 0">
+                              <v-list-item-title>No follows found</v-list-item-title>
+                            </v-list-item>
+                          </v-list>
+                        </div>
                       </v-window-item>
 
                       <!-- Messages タブ -->
                       <v-window-item value="messages">
-                        <v-list lines="one" class="messages-list">
-                          <v-list-item
-                            v-for="(message, index) in messages"
-                            :key="index"
-                            :title="JSON.stringify(message)"
-                            class="message-item"
-                          ></v-list-item>
-                          <v-list-item v-if="messages.length === 0">
-                            <v-list-item-title>No messages found</v-list-item-title>
-                          </v-list-item>
-                        </v-list>
+                        <div style="height: 100%; overflow-y: auto;">
+                          <v-list lines="one" class="messages-list">
+                            <v-list-item
+                              v-for="(message, index) in messages"
+                              :key="index"
+                              :title="JSON.stringify(message)"
+                              class="message-item"
+                            ></v-list-item>
+                            <v-list-item v-if="messages.length === 0">
+                              <v-list-item-title>No messages found</v-list-item-title>
+                            </v-list-item>
+                          </v-list>
+                        </div>
                       </v-window-item>
 
                       <!-- Logs タブ -->
                       <v-window-item value="logs">
-                        <div id="logs-content" class="logs-content pa-2"></div>
+                        <div id="logs-content" class="logs-content pa-2" style="height: 100%; overflow-y: auto;"></div>
+                      </v-window-item>
+
+                      <!-- Task タブ -->
+                      <v-window-item value="task">
+                        <div class="d-flex flex-column fill-height">
+                          <div id="task-editor" style="height: 100%;"></div>
+                          <div class="pa-2 d-flex justify-end">
+                            <v-btn
+                              color="primary"
+                              prepend-icon="mdi-content-save"
+                              @click="saveTask"
+                              :loading="isSavingTask"
+                              :disabled="isSavingTask"
+                            >
+                              Save Task
+                            </v-btn>
+                          </div>
+                        </div>
                       </v-window-item>
                     </v-window>
                   </v-card-text>
@@ -361,7 +378,7 @@
                   </v-card-title>
                   <v-divider></v-divider>
                   <v-card-text class="pa-0 fill-height">
-                    <div id="python-editor" style="height: 100%;"></div>
+                    <div id="python-editor" style="height: 100%; overflow-y: auto;"></div>
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -530,7 +547,7 @@
         delimiters: ['${', '}'],
         data() {
           return {
-            activeTab: 'web',
+            activeTab: 'task', // デフォルトでTaskタブを表示
             showCssHelper: false,
             cssSelector: '',
             follows: [],
@@ -551,13 +568,12 @@
             },
             // リサイズ関連の状態
             isResizing: false,
-            resizeType: null, // 'task', 'columns'
+            resizeType: null, // 'columns'
             startY: 0,
             startX: 0,
             startHeight: 0,
             startWidth: 0,
             leftColWidth: 50, // 左カラムの幅の初期値（％）
-            taskEditorHeight: 200 // タスクエディタの高さの初期値（px）
           }
         },
 
@@ -567,14 +583,6 @@
 
           // リサイズハンドルの初期設定
           this.$nextTick(() => {
-            // タスクエディタの初期高さを設定
-            const taskEditor = document.getElementById('task-editor');
-            if (taskEditor) {
-              taskEditor.style.height = this.taskEditorHeight + 'px';
-              if (this.taskEditor) {
-                this.taskEditor.setSize(null, this.taskEditorHeight);
-              }
-            }
 
             // 左右のカラムの初期幅を設定
             const leftCol = document.querySelector('.v-row > .v-col:first-child');
@@ -631,7 +639,8 @@
                     mode: 'application/json',
                     lineNumbers: true,
                     styleActiveLine: true,
-                    tabSize: 2
+                    tabSize: 2,
+                    scrollbarStyle: 'native'
                   });
                   console.log('Task editor initialized');
                 }
@@ -644,7 +653,8 @@
                     lineNumbers: true,
                     styleActiveLine: true,
                     tabSize: 4,
-                    indentUnit: 4
+                    indentUnit: 4,
+                    scrollbarStyle: 'native'
                   });
                   // グローバル変数に保存
                   window.pythonEditorInstance = this.pythonEditor;
@@ -658,7 +668,8 @@
                     mode: 'application/json',
                     lineNumbers: true,
                     readOnly: true,
-                    tabSize: 2
+                    tabSize: 2,
+                    scrollbarStyle: 'native'
                   });
                   console.log('Follow details editor initialized');
                 }
@@ -923,34 +934,7 @@
           },
 
           // リサイズ関連のメソッド
-          startResizeTaskEditor(e) {
-            this.isResizing = true;
-            this.resizeType = 'task';
-            this.startY = e.clientY;
-            this.startHeight = this.taskEditorHeight;
-
-            // メソッドをバインドしてthisの参照を保持
-            document.addEventListener('mousemove', this.resizeTaskEditor.bind(this));
-            document.addEventListener('mouseup', this.stopResize.bind(this));
-
-            // ドラッグ中はテキスト選択を無効化
-            document.body.style.userSelect = 'none';
-          },
-
-          resizeTaskEditor(e) {
-            if (!this.isResizing || this.resizeType !== 'task') return;
-
-            const deltaY = e.clientY - this.startY;
-            const newHeight = Math.max(100, this.startHeight + deltaY); // 最小高さは100px
-
-            this.taskEditorHeight = newHeight;
-            document.getElementById('task-editor').style.height = newHeight + 'px';
-
-            // CodeMirrorの高さも更新
-            if (this.taskEditor) {
-              this.taskEditor.setSize(null, newHeight);
-            }
-          },
+          // タスクエディタのリサイズは不要になったため削除
 
           startResizeColumns(e) {
             console.log('startResizeColumns called');
@@ -1054,9 +1038,11 @@
             rightCol.style.flexBasis = (100 - newLeftWidth) + '%';
 
             // CodeMirrorエディタをリサイズ
-            if (this.taskEditor && this.pythonEditor) {
-              this.taskEditor.refresh();
+            if (this.pythonEditor) {
               this.pythonEditor.refresh();
+            }
+            if (this.taskEditor) {
+              this.taskEditor.refresh();
             }
           },
 
@@ -1072,9 +1058,11 @@
             document.body.style.userSelect = '';
 
             // CodeMirrorエディタをリフレッシュ
-            if (this.taskEditor && this.pythonEditor) {
-              this.taskEditor.refresh();
+            if (this.pythonEditor) {
               this.pythonEditor.refresh();
+            }
+            if (this.taskEditor) {
+              this.taskEditor.refresh();
             }
           }
         }
