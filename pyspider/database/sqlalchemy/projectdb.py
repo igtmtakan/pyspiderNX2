@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2014-12-04 23:25:10
 
-import six
 import time
 import sqlalchemy.exc
 

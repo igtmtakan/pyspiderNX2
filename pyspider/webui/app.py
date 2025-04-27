@@ -12,8 +12,8 @@ import builtins
 logger = logging.getLogger("webui")
 
 
-from six.moves.urllib.parse import urljoin
-from six import reraise
+from urllib.parse import urljoin
+# Python 3.13 compatibility: no need for six.reraise
 from flask import Flask
 from flask_cors import CORS
 from pyspider.fetcher import tornado_fetcher
@@ -120,7 +120,8 @@ def cdn_url_handler(error, endpoint, kwargs):
     else:
         exc_type, exc_value, tb = sys.exc_info()
         if exc_value is error:
-            reraise(exc_type, exc_value, tb)
+            # Python 3.13 compatibility: use raise with traceback
+            raise exc_value.with_traceback(tb)
         else:
             raise error
 app.handle_url_build_error = cdn_url_handler

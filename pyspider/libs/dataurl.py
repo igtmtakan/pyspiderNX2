@@ -8,7 +8,7 @@
 
 from base64 import b64encode, b64decode
 from . import utils
-from six.moves.urllib.parse import quote, unquote
+from urllib.parse import quote, unquote
 
 
 def encode(data, mime_type='', charset='utf-8', base64=True):

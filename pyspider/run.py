@@ -868,7 +868,7 @@ def send_message(ctx, scheduler_rpc, project, message):
     """
     Send Message to project from command line
     """
-    if isinstance(scheduler_rpc, six.string_types):
+    if isinstance(scheduler_rpc, str):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
     if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
         scheduler_rpc = connect_rpc(ctx, None, 'http://%s:%s/' % (os.environ['SCHEDULER_PORT_23333_TCP_ADDR'],

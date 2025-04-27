@@ -11,7 +11,7 @@ import time
 import logging
 logger = logging.getLogger('bench')
 
-from six.moves import queue as Queue
+import queue as Queue
 from pyspider.scheduler import ThreadBaseScheduler as Scheduler
 from pyspider.fetcher.tornado_fetcher import Fetcher
 from pyspider.processor import Processor

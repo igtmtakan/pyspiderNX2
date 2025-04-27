@@ -4,7 +4,8 @@ const puppeteer = require('puppeteer');
 const app = express();
 
 // Get port from environment variable or use default
-const port = process.env.PUPPETEER_FETCHER_PORT || 22224;
+// コマンドライン引数からポートを取得（デフォルトは22222）
+const port = process.argv[2] || process.env.PUPPETEER_FETCHER_PORT || 22222;
 
 // Configure Express
 app.use(bodyParser.json({ limit: '50mb' }));

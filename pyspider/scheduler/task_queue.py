@@ -18,7 +18,7 @@ except ImportError:
     except ImportError:
         from collections.abc import Mapping as DictMixin
 from .token_bucket import Bucket
-from six.moves import queue as Queue
+import queue as Queue
 
 logger = logging.getLogger('scheduler')
 

@@ -13,12 +13,10 @@ import umsgpack
 import threading
 
 import amqp
-from six.moves.urllib.parse import unquote
-try:
-    from urllib import parse as urlparse
-except ImportError:
-    import urlparse
-from six.moves import queue as BaseQueue
+from urllib.parse import unquote
+# Python 3.13 compatibility: only use urllib.parse
+from urllib import parse as urlparse
+import queue as BaseQueue
 
 
 def catch_error(func):

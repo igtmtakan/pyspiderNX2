@@ -8,7 +8,7 @@
 import time
 import redis
 import umsgpack
-from six.moves import queue as BaseQueue
+import queue as BaseQueue
 
 
 class RedisQueue(object):

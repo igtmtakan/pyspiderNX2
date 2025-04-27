@@ -31,15 +31,13 @@ import requests
 inject_into_urllib3()
 
 
-from six.moves.urllib.robotparser import RobotFileParser
+from urllib.robotparser import RobotFileParser
 from requests import cookies
-from six.moves.urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit
 from tornado import gen
 
-try:
-    import http.cookies as http_cookies
-except ImportError:
-    import Cookie as http_cookies
+# Python 3.13 compatibility: only use http.cookies
+import http.cookies as http_cookies
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
@@ -1135,10 +1133,8 @@ class Fetcher(object):
         '''Run xmlrpc server'''
         import umsgpack
         from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
-        try:
-            from xmlrpc.client import Binary
-        except ImportError:
-            from xmlrpclib import Binary
+        # Python 3.13 compatibility: only use xmlrpc.client
+        from xmlrpc.client import Binary
 
         application = WSGIXMLRPCApplication()
 

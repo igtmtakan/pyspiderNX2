@@ -6,7 +6,7 @@
 # Created on 2014-10-08 15:04:08
 
 import os, requests, json
-from six.moves.urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 
 def connect_database(url):
