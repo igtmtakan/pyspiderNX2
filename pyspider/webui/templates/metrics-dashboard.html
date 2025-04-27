@@ -73,14 +73,11 @@
                 <v-btn variant="text" href="/index-v2">
                     <v-icon>mdi-view-list</v-icon> プロジェクト
                 </v-btn>
-                <v-btn variant="text" href="/debug">
-                    <v-icon>mdi-code-tags</v-icon> デバッグ
-                </v-btn>
                 <v-btn variant="text" href="/">
                     <v-icon>mdi-home</v-icon> ホーム
                 </v-btn>
             </v-app-bar>
-            
+
             <v-main>
                 <v-container>
                     <v-row>
@@ -101,7 +98,7 @@
                                             <div class="text-caption">[[ metric.subtitle ]]</div>
                                         </v-card>
                                     </div>
-                                    
+
                                     <div class="charts-container">
                                         <v-card class="chart-container">
                                             <v-card-title class="text-subtitle-1">システムリソース使用率</v-card-title>
@@ -112,7 +109,7 @@
                                             <canvas id="processResourcesChart"></canvas>
                                         </v-card>
                                     </div>
-                                    
+
                                     <div class="charts-container">
                                         <v-card class="chart-container">
                                             <v-card-title class="text-subtitle-1">スケジューラ統計</v-card-title>
@@ -123,7 +120,7 @@
                                             <canvas id="taskStatsChart"></canvas>
                                         </v-card>
                                     </div>
-                                    
+
                                     <div class="timestamp" id="timestamp">
                                         最終更新: [[ lastUpdated ]]
                                     </div>
@@ -143,7 +140,7 @@
                 defaultTheme: 'light'
             }
         });
-        
+
         // システムリソースチャート
         let systemResourcesChart;
         // プロセスリソースチャート
@@ -152,7 +149,7 @@
         let schedulerStatsChart;
         // タスク統計チャート
         let taskStatsChart;
-        
+
         const app = createApp({
             delimiters: ['[[', ']]'],
             data() {
@@ -214,7 +211,7 @@
                             }
                         }
                     });
-                    
+
                     // プロセスリソースチャート
                     const processCtx = document.getElementById('processResourcesChart').getContext('2d');
                     processResourcesChart = new Chart(processCtx, {
@@ -254,7 +251,7 @@
                             }
                         }
                     });
-                    
+
                     // スケジューラ統計チャート
                     const schedulerCtx = document.getElementById('schedulerStatsChart').getContext('2d');
                     schedulerStatsChart = new Chart(schedulerCtx, {
@@ -295,7 +292,7 @@
                             }
                         }
                     });
-                    
+
                     // タスク統計チャート
                     const taskCtx = document.getElementById('taskStatsChart').getContext('2d');
                     taskStatsChart = new Chart(taskCtx, {
@@ -323,19 +320,19 @@
                         }
                     });
                 },
-                
+
                 async fetchMetrics() {
                     try {
                         const response = await fetch('/metrics');
                         const data = await response.json();
                         this.metrics = data;
-                        
+
                         // メトリクスを表示用に整形
                         this.updateDisplayMetrics(data);
-                        
+
                         // チャートを更新
                         this.updateCharts(data);
-                        
+
                         // タイムスタンプを表示
                         const date = new Date(data.timestamp * 1000);
                         this.lastUpdated = date.toLocaleString();
@@ -343,11 +340,11 @@
                         console.error('メトリクスの取得に失敗しました:', error);
                     }
                 },
-                
+
                 updateDisplayMetrics(data) {
                     const system = data.system || {};
                     const scheduler = data.scheduler || {};
-                    
+
                     this.displayMetrics = {
                         cpu: {
                             label: 'CPU使用率',
@@ -416,11 +413,11 @@
                         }
                     };
                 },
-                
+
                 updateCharts(data) {
                     const system = data.system || {};
                     const scheduler = data.scheduler || {};
-                    
+
                     // システムリソースチャートを更新
                     systemResourcesChart.data.datasets[0].data = [
                         system.cpu_percent || 0,
@@ -428,14 +425,14 @@
                         system.disk_percent || 0
                     ];
                     systemResourcesChart.update();
-                    
+
                     // プロセスリソースチャートを更新
                     processResourcesChart.data.datasets[0].data = [
                         system.process_cpu_percent || 0,
                         (system.process_memory_percent || 0) * 100
                     ];
                     processResourcesChart.update();
-                    
+
                     // スケジューラ統計チャートを更新
                     schedulerStatsChart.data.datasets[0].data = [
                         scheduler.queue_size || 0,
@@ -443,13 +440,13 @@
                         scheduler.pending_tasks || 0
                     ];
                     schedulerStatsChart.update();
-                    
+
                     // タスク統計チャートを更新
                     const successTasks = scheduler.success_tasks_24h || 0;
                     const failedTasks = scheduler.failed_tasks_24h || 0;
                     const totalTasks = scheduler.total_tasks_24h || 0;
                     const otherTasks = Math.max(0, totalTasks - successTasks - failedTasks);
-                    
+
                     taskStatsChart.data.datasets[0].data = [
                         successTasks,
                         failedTasks,
@@ -457,13 +454,13 @@
                     ];
                     taskStatsChart.update();
                 },
-                
+
                 startAutoRefresh() {
                     this.refreshInterval = setInterval(() => {
                         this.fetchMetrics();
                     }, 30000); // 30秒ごとに更新
                 },
-                
+
                 stopAutoRefresh() {
                     if (this.refreshInterval) {
                         clearInterval(this.refreshInterval);
@@ -472,7 +469,7 @@
                 }
             }
         });
-        
+
         app.use(vuetify);
         app.mount('#app');
     </script>

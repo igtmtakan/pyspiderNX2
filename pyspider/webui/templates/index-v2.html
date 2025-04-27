@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PySpider Dashboard Classic Mode</title>
+    <title>PySpider Projects</title>
 
     <!-- Vuetify CSS -->
     <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
@@ -286,7 +286,7 @@
     <div id="app">
         <v-app>
             <v-app-bar color="primary" style="height: 46px;" density="compact">
-                <v-app-bar-title style="font-size: 18px; padding: 0;">PySpider Dashboard Classic Mode</v-app-bar-title>
+                <v-app-bar-title style="font-size: 18px; padding: 0;">Projects</v-app-bar-title>
                 <v-spacer></v-spacer>
                 <v-btn variant="text" href="/" density="compact" style="margin-top: -2px;">
                     Classic Mode
@@ -525,7 +525,7 @@
                                             </td>
                                             <td>
                                                 <div class="action-buttons">
-                                                    <a :href="'/debug/' + project.name" class="action-button debug" title="Debug">
+                                                    <a :href="'/debug-v2/' + project.name" class="action-button debug" title="Debug">
                                                         <i class="mdi mdi-code-tags"></i>
                                                     </a>
                                                     <a :href="'/result-v2/' + project.name" class="action-button result" title="Results">
@@ -616,7 +616,7 @@
                             ></v-text-field>
                             <v-select
                                 v-model="editingProject.status"
-                                :items="['RUNNING', 'PAUSED', 'STOPPED']"
+                                :items="['RUNNING', 'PAUSED', 'STOPPED', 'CHECKING', 'TODO']"
                                 label="Status"
                             ></v-select>
                             <v-text-field
@@ -983,7 +983,7 @@
                 },
                 goToDebug(project) {
                     // Debugページに遷移
-                    window.location.href = '/debug/' + project.name;
+                    window.location.href = '/debug-v2/' + project.name;
                 },
 
                 runProject(project) {
@@ -1150,7 +1150,7 @@
                     formData.append('project-name', projectName);
                     formData.append('start-urls', startUrl);
 
-                    fetch('/debug/new', {
+                    fetch('/debug-v2/new', {
                         method: 'POST',
                         body: formData
                     })
@@ -1183,7 +1183,7 @@
 
                         // Redirect to debug page
                         setTimeout(() => {
-                            window.location.href = '/debug/' + projectName;
+                            window.location.href = '/debug-v2/' + projectName;
                         }, 500);
                     })
                     .catch(error => {
