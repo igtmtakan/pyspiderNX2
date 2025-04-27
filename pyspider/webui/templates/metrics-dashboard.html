@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpider メトリクスダッシュボード</title>
+    <link href="//cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <link href="//cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .timestamp {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="primary" density="compact">
+                <v-app-bar-title>PySpider メトリクスダッシュボード</v-app-bar-title>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" href="/index-v2">
+                    <v-icon>mdi-view-list</v-icon> プロジェクト
+                </v-btn>
+                <v-btn variant="text" href="/debug">
+                    <v-icon>mdi-code-tags</v-icon> デバッグ
+                </v-btn>
+                <v-btn variant="text" href="/">
+                    <v-icon>mdi-home</v-icon> ホーム
+                </v-btn>
+            </v-app-bar>
+            
+            <v-main>
+                <v-container>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-card>
+                                <v-card-title class="text-h5">
+                                    システム統計情報
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="primary" @click="fetchMetrics" icon>
+                                        <v-icon>mdi-refresh</v-icon>
+                                    </v-btn>
+                                </v-card-title>
+                                <v-card-text>
+                                    <div class="metrics-grid" id="metrics-grid">
+                                        <v-card v-for="(metric, key) in displayMetrics" :key="key" class="metric-card">
+                                            <div class="metric-label">[[ metric.label ]]</div>
+                                            <div class="metric-value">[[ metric.value ]]</div>
+                                            <div class="text-caption">[[ metric.subtitle ]]</div>
+                                        </v-card>
+                                    </div>
+                                    
+                                    <div class="charts-container">
+                                        <v-card class="chart-container">
+                                            <v-card-title class="text-subtitle-1">システムリソース使用率</v-card-title>
+                                            <canvas id="systemResourcesChart"></canvas>
+                                        </v-card>
+                                        <v-card class="chart-container">
+                                            <v-card-title class="text-subtitle-1">プロセスリソース使用率</v-card-title>
+                                            <canvas id="processResourcesChart"></canvas>
+                                        </v-card>
+                                    </div>
+                                    
+                                    <div class="charts-container">
+                                        <v-card class="chart-container">
+                                            <v-card-title class="text-subtitle-1">スケジューラ統計</v-card-title>
+                                            <canvas id="schedulerStatsChart"></canvas>
+                                        </v-card>
+                                        <v-card class="chart-container">
+                                            <v-card-title class="text-subtitle-1">タスク統計（24時間）</v-card-title>
+                                            <canvas id="taskStatsChart"></canvas>
+                                        </v-card>
+                                    </div>
+                                    
+                                    <div class="timestamp" id="timestamp">
+                                        最終更新: [[ lastUpdated ]]
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const vuetify = Vuetify.createVuetify({
+            theme: {
+                defaultTheme: 'light'
+            }
+        });
+        
+        // システムリソースチャート
+        let systemResourcesChart;
+        // プロセスリソースチャート
+        let processResourcesChart;
+        // スケジューラ統計チャート
+        let schedulerStatsChart;
+        // タスク統計チャート
+        let taskStatsChart;
+        
+        const app = createApp({
+            delimiters: ['[[', ']]'],
+            data() {
+                return {
+                    metrics: {},
+                    lastUpdated: '読み込み中...',
+                    refreshInterval: null,
+                    displayMetrics: {}
+                }
+            },
+            mounted() {
+                this.initCharts();
+                this.fetchMetrics();
+                this.startAutoRefresh();
+            },
+            beforeUnmount() {
+                this.stopAutoRefresh();
+            },
+            methods: {
+                initCharts() {
+                    // システムリソースチャート
+                    const systemCtx = document.getElementById('systemResourcesChart').getContext('2d');
+                    systemResourcesChart = new Chart(systemCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['CPU使用率 (%)', 'メモリ使用率 (%)', 'ディスク使用率 (%)'],
+                            datasets: [{
+                                label: 'システムリソース',
+                                data: [0, 0, 0],
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.5)',
+                                    'rgba(54, 162, 235, 0.5)',
+                                    'rgba(255, 206, 86, 0.5)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: '使用率 (%)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // プロセスリソースチャート
+                    const processCtx = document.getElementById('processResourcesChart').getContext('2d');
+                    processResourcesChart = new Chart(processCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['CPU使用率 (%)', 'メモリ使用率 (%)'],
+                            datasets: [{
+                                label: 'プロセスリソース',
+                                data: [0, 0],
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.5)',
+                                    'rgba(153, 102, 255, 0.5)'
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: '使用率 (%)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // スケジューラ統計チャート
+                    const schedulerCtx = document.getElementById('schedulerStatsChart').getContext('2d');
+                    schedulerStatsChart = new Chart(schedulerCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['キューサイズ', '処理中タスク', '保留中タスク'],
+                            datasets: [{
+                                label: 'スケジューラ統計',
+                                data: [0, 0, 0],
+                                backgroundColor: [
+                                    'rgba(255, 159, 64, 0.5)',
+                                    'rgba(255, 99, 132, 0.5)',
+                                    'rgba(54, 162, 235, 0.5)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: '数'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // タスク統計チャート
+                    const taskCtx = document.getElementById('taskStatsChart').getContext('2d');
+                    taskStatsChart = new Chart(taskCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['成功', '失敗', 'その他'],
+                            datasets: [{
+                                label: 'タスク統計（24時間）',
+                                data: [0, 0, 0],
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.5)',
+                                    'rgba(255, 99, 132, 0.5)',
+                                    'rgba(201, 203, 207, 0.5)'
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(201, 203, 207, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    });
+                },
+                
+                async fetchMetrics() {
+                    try {
+                        const response = await fetch('/metrics');
+                        const data = await response.json();
+                        this.metrics = data;
+                        
+                        // メトリクスを表示用に整形
+                        this.updateDisplayMetrics(data);
+                        
+                        // チャートを更新
+                        this.updateCharts(data);
+                        
+                        // タイムスタンプを表示
+                        const date = new Date(data.timestamp * 1000);
+                        this.lastUpdated = date.toLocaleString();
+                    } catch (error) {
+                        console.error('メトリクスの取得に失敗しました:', error);
+                    }
+                },
+                
+                updateDisplayMetrics(data) {
+                    const system = data.system || {};
+                    const scheduler = data.scheduler || {};
+                    
+                    this.displayMetrics = {
+                        cpu: {
+                            label: 'CPU使用率',
+                            value: `${system.cpu_percent?.toFixed(1) || 0}%`,
+                            subtitle: 'システム全体'
+                        },
+                        memory: {
+                            label: 'メモリ使用率',
+                            value: `${system.memory_percent?.toFixed(1) || 0}%`,
+                            subtitle: 'システム全体'
+                        },
+                        disk: {
+                            label: 'ディスク使用率',
+                            value: `${system.disk_percent?.toFixed(1) || 0}%`,
+                            subtitle: 'システム全体'
+                        },
+                        processCpu: {
+                            label: 'プロセスCPU',
+                            value: `${system.process_cpu_percent?.toFixed(1) || 0}%`,
+                            subtitle: 'PySpiderプロセス'
+                        },
+                        processMemory: {
+                            label: 'プロセスメモリ',
+                            value: `${system.process_memory_mb?.toFixed(2) || 0} MB`,
+                            subtitle: 'PySpiderプロセス'
+                        },
+                        processMemoryPercent: {
+                            label: 'プロセスメモリ率',
+                            value: `${(system.process_memory_percent * 100)?.toFixed(2) || 0}%`,
+                            subtitle: 'PySpiderプロセス'
+                        },
+                        connections: {
+                            label: '接続数',
+                            value: system.process_connections || 0,
+                            subtitle: 'ネットワーク接続'
+                        },
+                        openFiles: {
+                            label: 'オープンファイル',
+                            value: system.process_open_files || 0,
+                            subtitle: 'ファイルハンドル'
+                        },
+                        threads: {
+                            label: 'スレッド数',
+                            value: system.process_threads || 0,
+                            subtitle: 'プロセススレッド'
+                        },
+                        uptime: {
+                            label: '稼働時間',
+                            value: `${((system.uptime || 0) / 3600).toFixed(2)} 時間`,
+                            subtitle: 'サーバー起動からの時間'
+                        },
+                        queueSize: {
+                            label: 'キューサイズ',
+                            value: scheduler.queue_size || 0,
+                            subtitle: 'スケジューラキュー'
+                        },
+                        processingTasks: {
+                            label: '処理中タスク',
+                            value: scheduler.processing_tasks || 0,
+                            subtitle: '現在処理中'
+                        },
+                        totalTasks24h: {
+                            label: '24時間タスク数',
+                            value: scheduler.total_tasks_24h || 0,
+                            subtitle: '過去24時間'
+                        }
+                    };
+                },
+                
+                updateCharts(data) {
+                    const system = data.system || {};
+                    const scheduler = data.scheduler || {};
+                    
+                    // システムリソースチャートを更新
+                    systemResourcesChart.data.datasets[0].data = [
+                        system.cpu_percent || 0,
+                        system.memory_percent || 0,
+                        system.disk_percent || 0
+                    ];
+                    systemResourcesChart.update();
+                    
+                    // プロセスリソースチャートを更新
+                    processResourcesChart.data.datasets[0].data = [
+                        system.process_cpu_percent || 0,
+                        (system.process_memory_percent || 0) * 100
+                    ];
+                    processResourcesChart.update();
+                    
+                    // スケジューラ統計チャートを更新
+                    schedulerStatsChart.data.datasets[0].data = [
+                        scheduler.queue_size || 0,
+                        scheduler.processing_tasks || 0,
+                        scheduler.pending_tasks || 0
+                    ];
+                    schedulerStatsChart.update();
+                    
+                    // タスク統計チャートを更新
+                    const successTasks = scheduler.success_tasks_24h || 0;
+                    const failedTasks = scheduler.failed_tasks_24h || 0;
+                    const totalTasks = scheduler.total_tasks_24h || 0;
+                    const otherTasks = Math.max(0, totalTasks - successTasks - failedTasks);
+                    
+                    taskStatsChart.data.datasets[0].data = [
+                        successTasks,
+                        failedTasks,
+                        otherTasks
+                    ];
+                    taskStatsChart.update();
+                },
+                
+                startAutoRefresh() {
+                    this.refreshInterval = setInterval(() => {
+                        this.fetchMetrics();
+                    }, 30000); // 30秒ごとに更新
+                },
+                
+                stopAutoRefresh() {
+                    if (this.refreshInterval) {
+                        clearInterval(this.refreshInterval);
+                        this.refreshInterval = null;
+                    }
+                }
+            }
+        });
+        
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpider メトリクスダッシュボード</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .chart-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .refresh-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .refresh-button:hover {
+            background-color: #2980b9;
+        }
+        .timestamp {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PySpider メトリクスダッシュボード</h1>
+        
+        <div class="metrics-grid" id="metrics-grid">
+            <!-- メトリクスカードがここに動的に追加されます -->
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-container">
+                <canvas id="systemResourcesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="processResourcesChart"></canvas>
+            </div>
+        </div>
+        
+        <button class="refresh-button" onclick="fetchMetrics()">データを更新</button>
+        
+        <div class="timestamp" id="timestamp">
+            <!-- タイムスタンプがここに表示されます -->
+        </div>
+    </div>
+
+    <script>
+        // システムリソースチャート
+        let systemResourcesChart;
+        // プロセスリソースチャート
+        let processResourcesChart;
+        
+        // 初期化関数
+        function initCharts() {
+            // システムリソースチャート
+            const systemCtx = document.getElementById('systemResourcesChart').getContext('2d');
+            systemResourcesChart = new Chart(systemCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['CPU使用率 (%)', 'メモリ使用率 (%)', 'ディスク使用率 (%)'],
+                    datasets: [{
+                        label: 'システムリソース',
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.5)',
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(255, 206, 86, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'システムリソース使用率'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '使用率 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // プロセスリソースチャート
+            const processCtx = document.getElementById('processResourcesChart').getContext('2d');
+            processResourcesChart = new Chart(processCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['CPU使用率 (%)', 'メモリ使用率 (%)'],
+                    datasets: [{
+                        label: 'プロセスリソース',
+                        data: [0, 0],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.5)',
+                            'rgba(153, 102, 255, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'プロセスリソース使用率'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '使用率 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // メトリクスデータを取得して表示する関数
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('http://localhost:5000/metrics');
+                const data = await response.json();
+                
+                // データを表示
+                updateMetricsDisplay(data);
+                
+                // タイムスタンプを表示
+                const date = new Date(data.timestamp * 1000);
+                document.getElementById('timestamp').textContent = `最終更新: ${date.toLocaleString()}`;
+            } catch (error) {
+                console.error('メトリクスの取得に失敗しました:', error);
+                alert('メトリクスの取得に失敗しました。サーバーが実行中であることを確認してください。');
+            }
+        }
+        
+        // メトリクス表示を更新する関数
+        function updateMetricsDisplay(data) {
+            const system = data.system;
+            
+            // メトリクスグリッドをクリア
+            const metricsGrid = document.getElementById('metrics-grid');
+            metricsGrid.innerHTML = '';
+            
+            // システムメトリクスカードを追加
+            addMetricCard(metricsGrid, 'CPU使用率', `${system.cpu_percent.toFixed(1)}%`, 'システム全体');
+            addMetricCard(metricsGrid, 'メモリ使用率', `${system.memory_percent.toFixed(1)}%`, 'システム全体');
+            addMetricCard(metricsGrid, 'ディスク使用率', `${system.disk_percent.toFixed(1)}%`, 'システム全体');
+            addMetricCard(metricsGrid, 'プロセスCPU', `${system.process_cpu_percent.toFixed(1)}%`, 'PySpiderプロセス');
+            addMetricCard(metricsGrid, 'プロセスメモリ', `${system.process_memory_mb.toFixed(2)} MB`, 'PySpiderプロセス');
+            addMetricCard(metricsGrid, 'プロセスメモリ率', `${(system.process_memory_percent * 100).toFixed(2)}%`, 'PySpiderプロセス');
+            addMetricCard(metricsGrid, '接続数', system.process_connections, 'ネットワーク接続');
+            addMetricCard(metricsGrid, 'オープンファイル', system.process_open_files, 'ファイルハンドル');
+            addMetricCard(metricsGrid, 'スレッド数', system.process_threads, 'プロセススレッド');
+            addMetricCard(metricsGrid, '稼働時間', `${(system.uptime / 3600).toFixed(2)} 時間`, 'サーバー起動からの時間');
+            
+            // チャートを更新
+            updateCharts(system);
+        }
+        
+        // メトリクスカードを追加する関数
+        function addMetricCard(container, label, value, subtitle) {
+            const card = document.createElement('div');
+            card.className = 'metric-card';
+            
+            const labelElement = document.createElement('div');
+            labelElement.className = 'metric-label';
+            labelElement.textContent = label;
+            
+            const valueElement = document.createElement('div');
+            valueElement.className = 'metric-value';
+            valueElement.textContent = value;
+            
+            const subtitleElement = document.createElement('div');
+            subtitleElement.style.fontSize = '12px';
+            subtitleElement.style.color = '#95a5a6';
+            subtitleElement.textContent = subtitle;
+            
+            card.appendChild(labelElement);
+            card.appendChild(valueElement);
+            card.appendChild(subtitleElement);
+            
+            container.appendChild(card);
+        }
+        
+        // チャートを更新する関数
+        function updateCharts(system) {
+            // システムリソースチャートを更新
+            systemResourcesChart.data.datasets[0].data = [
+                system.cpu_percent,
+                system.memory_percent,
+                system.disk_percent
+            ];
+            systemResourcesChart.update();
+            
+            // プロセスリソースチャートを更新
+            processResourcesChart.data.datasets[0].data = [
+                system.process_cpu_percent,
+                system.process_memory_percent * 100
+            ];
+            processResourcesChart.update();
+        }
+        
+        // ページ読み込み時に初期化
+        window.onload = function() {
+            initCharts();
+            fetchMetrics();
+            
+            // 30秒ごとに自動更新
+            setInterval(fetchMetrics, 30000);
+        };
+    </script>
+</body>
+</html>

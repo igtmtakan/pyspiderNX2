@@ -8,7 +8,7 @@ import json
 import time
 import psutil
 import logging
-from flask import jsonify
+from flask import jsonify, render_template
 from .app import app
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def get_scheduler_stats():
     try:
         if not hasattr(app, 'scheduler'):
             return {}
-        
+
         scheduler = app.scheduler
         stats = {
             'queue_size': 0,
@@ -28,15 +28,15 @@ def get_scheduler_stats():
             'success_tasks_24h': 0,
             'pending_tasks': 0
         }
-        
+
         # キューサイズ
         if hasattr(scheduler, 'queue') and hasattr(scheduler.queue, 'qsize'):
             stats['queue_size'] = scheduler.queue.qsize()
-        
+
         # 処理中のタスク
         if hasattr(scheduler, 'processing'):
             stats['processing_tasks'] = len(scheduler.processing)
-        
+
         # カウンター
         if hasattr(scheduler, 'counter'):
             try:
@@ -46,7 +46,7 @@ def get_scheduler_stats():
                 stats['pending_tasks'] = scheduler.counter('all', 'pending')
             except Exception as e:
                 logger.error(f"Error getting counter stats: {str(e)}")
-        
+
         return stats
     except Exception as e:
         logger.error(f"Error getting scheduler stats: {str(e)}")
@@ -61,7 +61,7 @@ def get_system_stats():
             'disk_percent': psutil.disk_usage('/').percent,
             'uptime': time.time() - psutil.boot_time()
         }
-        
+
         # プロセス情報
         process = psutil.Process()
         stats['process_cpu_percent'] = process.cpu_percent(interval=0.1)
@@ -70,7 +70,7 @@ def get_system_stats():
         stats['process_threads'] = process.num_threads()
         stats['process_open_files'] = len(process.open_files())
         stats['process_connections'] = len(process.connections())
-        
+
         return stats
     except Exception as e:
         logger.error(f"Error getting system stats: {str(e)}")
@@ -86,7 +86,7 @@ def metrics():
             'scheduler': get_scheduler_stats(),
             'system': get_system_stats()
         }
-        
+
         return jsonify(metrics)
     except Exception as e:
         logger.error(f"Error in metrics endpoint: {str(e)}")
@@ -95,6 +95,12 @@ def metrics():
             'timestamp': time.time()
         }), 500
 
+@app.route('/metrics-dashboard')
+def metrics_dashboard():
+    """メトリクスダッシュボードページ"""
+    return render_template("metrics-dashboard.html")
+
+
 @app.route('/metrics/health')
 def health():
     """ヘルスチェックエンドポイント"""
@@ -102,33 +108,33 @@ def health():
         # 基本的なヘルスチェック
         system_stats = get_system_stats()
         scheduler_stats = get_scheduler_stats()
-        
+
         # ヘルスステータスを判断
         health_status = 'healthy'
         issues = []
-        
+
         # システムリソースのチェック
         if system_stats.get('cpu_percent', 0) > 90:
             health_status = 'warning'
             issues.append('High CPU usage')
-        
+
         if system_stats.get('memory_percent', 0) > 90:
             health_status = 'warning'
             issues.append('High memory usage')
-        
+
         if system_stats.get('disk_percent', 0) > 90:
             health_status = 'warning'
             issues.append('High disk usage')
-        
+
         # スケジューラのチェック
         if scheduler_stats.get('queue_size', 0) > 10000:
             health_status = 'warning'
             issues.append('Large queue size')
-        
+
         if scheduler_stats.get('processing_tasks', 0) > 1000:
             health_status = 'warning'
             issues.append('Many processing tasks')
-        
+
         # レスポンスを返す
         return jsonify({
             'status': health_status,
