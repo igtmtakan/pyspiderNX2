@@ -52,7 +52,14 @@ def connect_rpc(ctx, param, value):
     if not value:
         return
     import xmlrpc.client as xmlrpc_client
-    return xmlrpc_client.ServerProxy(value, allow_none=True)
+    # Python 3.13 compatibility: add timeout and handle connection errors
+    try:
+        return xmlrpc_client.ServerProxy(value, allow_none=True, use_builtin_types=True,
+                                        transport=xmlrpc_client.Transport(use_builtin_types=True))
+    except Exception as e:
+        import logging
+        logging.exception("Failed to connect to RPC server: %s", e)
+        raise
 
 
 @click.group(invoke_without_command=True)
@@ -421,8 +428,45 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     # fetcher rpc
     if isinstance(fetcher_rpc, str):
         import umsgpack
-        fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
-        app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
+        try:
+            fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
+
+            # Python 3.13 compatibility: handle fetch differently
+            def safe_remote_fetch(task):
+                try:
+                    # Convert task to Binary if needed
+                    from xmlrpc.client import Binary
+                    if isinstance(task, dict):
+                        packed_task = umsgpack.packb(task)
+                        binary_task = Binary(packed_task)
+                        result = fetcher_rpc.fetch(binary_task)
+                        return umsgpack.unpackb(result.data)
+                    else:
+                        result = fetcher_rpc.fetch(task)
+                        return umsgpack.unpackb(result.data)
+                except Exception as e:
+                    import traceback
+                    import logging
+                    logging.error("Error in remote fetch: %s", e)
+                    traceback.print_exc()
+                    raise
+
+            app.config['fetch'] = safe_remote_fetch
+        except Exception as e:
+            import logging
+            logging.error("Failed to connect to fetcher RPC: %s", e)
+            # Fallback to local fetcher
+            fetcher_config = g.config.get('fetcher', {})
+            webui_fetcher = ctx.invoke(fetcher, async_mode=False, get_object=True, no_input=True, **fetcher_config)
+
+            def safe_local_fetch(task):
+                try:
+                    return webui_fetcher.fetch(task)
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    raise
+            app.config['fetch'] = safe_local_fetch
     else:
         # get fetcher instance for webui
         fetcher_config = g.config.get('fetcher', {})
@@ -435,20 +479,33 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
             except Exception as e:
                 import traceback
                 traceback.print_exc()
-                raise e
+                raise
         app.config['fetch'] = safe_fetch
 
     # scheduler rpc
-    if isinstance(scheduler_rpc, str):
-        scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
-    if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
-        app.config['scheduler_rpc'] = connect_rpc(ctx, None,
-                                                  'http://{}:{}/'.format(os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'),
-                                                                         os.environ.get('SCHEDULER_PORT_23333_TCP_PORT') or 23333))
-    elif scheduler_rpc is None:
-        app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
-    else:
-        app.config['scheduler_rpc'] = scheduler_rpc
+    try:
+        if isinstance(scheduler_rpc, str):
+            scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
+        if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
+            app.config['scheduler_rpc'] = connect_rpc(ctx, None,
+                                                    'http://{}:{}/'.format(os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'),
+                                                                           os.environ.get('SCHEDULER_PORT_23333_TCP_PORT') or 23333))
+        elif scheduler_rpc is None:
+            app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
+        else:
+            app.config['scheduler_rpc'] = scheduler_rpc
+    except Exception as e:
+        import logging
+        logging.error("Failed to connect to scheduler RPC: %s", e)
+        # Create a dummy scheduler_rpc that logs errors
+        class DummySchedulerRPC:
+            def __getattr__(self, name):
+                def dummy_method(*args, **kwargs):
+                    logging.error("Scheduler RPC not available. Method %s called with args: %s, kwargs: %s",
+                                 name, args, kwargs)
+                    return None
+                return dummy_method
+        app.config['scheduler_rpc'] = DummySchedulerRPC()
 
 
     app.debug = g.debug

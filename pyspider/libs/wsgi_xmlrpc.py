@@ -77,9 +77,18 @@ class WSGIXMLRPCApplication(object):
             # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
             # check to see if a subclass implements _dispatch and
             # using that method if present.
-            response = self.dispatcher._marshaled_dispatch(
-                data, getattr(self.dispatcher, '_dispatch', None)
-            )
+
+            # Python 3.13 compatibility: ensure data is bytes
+            if isinstance(data, str):
+                data = data.encode('utf-8')
+
+            try:
+                response = self.dispatcher._marshaled_dispatch(
+                    data, getattr(self.dispatcher, '_dispatch', None)
+                )
+            except Exception as dispatch_error:
+                logger.exception("XML-RPC dispatch error: %s", dispatch_error)
+                raise
             response += b'\n'
         except Exception as e:  # This should only happen if the module is buggy
             # internal error, report as HTTP server error

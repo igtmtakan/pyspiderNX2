@@ -103,6 +103,7 @@ class Fetcher(object):
     # phantomjs_proxy has been removed as PhantomJS is deprecated
     splash_endpoint = None
     puppeteer_endpoint = 'http://localhost:22223'
+    puppeteer_proxy = 'http://localhost:22223'
     splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
     robot_txt_age = 60*60  # 1h
 
@@ -284,7 +285,11 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
                 # Redirect js/phantomjs fetch_type to puppeteer
                 fetch_type = 'puppeteer'
-                logger.info("PhantomJS is deprecated, redirecting to puppeteer: %s", url)
+                logger.warning("PhantomJS is deprecated and will be removed in future versions. "
+                             "Your request with fetch_type='%s' has been redirected to puppeteer. "
+                             "Please update your code to use fetch_type='puppeteer' directly. "
+                             "See documentation for more details.",
+                             task.get('fetch', {}).get('fetch_type'))
                 result = yield self.puppeteer_fetch(url, task)
             elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
                 fetch_type = 'splash'
@@ -1046,9 +1051,31 @@ class Fetcher(object):
         application.register_function(self.size)
 
         def sync_fetch(task):
-            result = self.sync_fetch(task)
-            result = Binary(umsgpack.packb(result))
-            return result
+            try:
+                # Python 3.13 compatibility: handle task properly
+                if isinstance(task, dict):
+                    # Task is already a dict, use it directly
+                    pass
+                elif hasattr(task, 'data') and isinstance(task.data, bytes):
+                    # Task is a Binary object with data attribute
+                    try:
+                        task = umsgpack.unpackb(task.data)
+                    except Exception as e:
+                        logger.exception("Failed to unpack task: %s", e)
+                        raise
+
+                # Perform the fetch
+                result = self.sync_fetch(task)
+
+                # Pack the result
+                packed_result = umsgpack.packb(result)
+
+                # Return as Binary
+                return Binary(packed_result)
+            except Exception as e:
+                logger.exception("Error in sync_fetch: %s", e)
+                raise
+
         application.register_function(sync_fetch, 'fetch')
 
         def dump_counter(_time, _type):
@@ -1059,16 +1086,33 @@ class Fetcher(object):
         import tornado.ioloop
         import tornado.httpserver
 
+        # Python 3.13 compatibility: use a separate IOLoop for XML-RPC
+        self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
         container = tornado.wsgi.WSGIContainer(application)
-        self.xmlrpc_ioloop = tornado.ioloop.IOLoop.current()
+
+        # In newer Tornado versions, io_loop is set differently
         self.xmlrpc_server = tornado.httpserver.HTTPServer(container)
         self.xmlrpc_server.listen(port=port, address=bind)
-        logger.info('fetcher.xmlrpc listening on %s:%s', bind, port)
-        self.xmlrpc_ioloop.start()
+
+        try:
+            logger.info('fetcher.xmlrpc listening on %s:%s', bind, port)
+            self.xmlrpc_ioloop.start()
+        except Exception as e:
+            logger.exception("Failed to start XML-RPC server: %s", e)
+            raise
 
     def on_fetch(self, fetch_type, task):
         '''Called before task fetch'''
-        logger.info('on fetch %s:%s', fetch_type, task)
+        # Log only essential information to avoid excessive output
+        logger.info('on fetch %s:%s', fetch_type, {
+            'taskid': task.get('taskid'),
+            'project': task.get('project'),
+            'url': task.get('url'),
+            'fetch': {
+                'method': task.get('fetch', {}).get('method'),
+                'fetch_type': task.get('fetch', {}).get('fetch_type')
+            }
+        })
 
     def on_result(self, fetch_type, task, result):
         '''Called after task fetched'''

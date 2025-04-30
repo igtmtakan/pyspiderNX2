@@ -712,122 +712,180 @@ class Scheduler(object):
         def dump_counter(_time, _type):
             try:
                 return self._cnt[_time].to_dict(_type)
-            except:
-                logger.exception('')
+            except Exception as e:
+                logger.exception('Error in dump_counter: %s', e)
+                return {}
         application.register_function(dump_counter, 'counter')
 
         def new_task(task):
-            if self.task_verify(task):
-                self.newtask_queue.put(task)
-                return True
-            return False
+            try:
+                # Python 3.13 compatibility: handle task properly
+                if hasattr(task, 'data') and isinstance(task.data, bytes):
+                    # Task is a Binary object with data attribute
+                    import umsgpack
+                    try:
+                        task = umsgpack.unpackb(task.data)
+                    except Exception as e:
+                        logger.exception("Failed to unpack task: %s", e)
+                        return False
+
+                if self.task_verify(task):
+                    self.newtask_queue.put(task)
+                    return True
+                return False
+            except Exception as e:
+                logger.exception("Error in new_task: %s", e)
+                return False
         application.register_function(new_task, 'newtask')
 
         def send_task(task):
             '''dispatch task to fetcher'''
-            self.send_task(task)
-            return True
+            try:
+                # Python 3.13 compatibility: handle task properly
+                if hasattr(task, 'data') and isinstance(task.data, bytes):
+                    # Task is a Binary object with data attribute
+                    import umsgpack
+                    try:
+                        task = umsgpack.unpackb(task.data)
+                    except Exception as e:
+                        logger.exception("Failed to unpack task: %s", e)
+                        return False
+
+                self.send_task(task)
+                return True
+            except Exception as e:
+                logger.exception("Error in send_task: %s", e)
+                return False
         application.register_function(send_task, 'send_task')
 
         def update_project():
-            self._force_update_project = True
+            try:
+                self._force_update_project = True
+                return True
+            except Exception as e:
+                logger.exception("Error in update_project: %s", e)
+                return False
         application.register_function(update_project, 'update_project')
 
         def get_active_tasks(project=None, limit=100):
-            allowed_keys = set((
-                'type',
-                'taskid',
-                'project',
-                'status',
-                'url',
-                'lastcrawltime',
-                'updatetime',
-                'track',
-            ))
-            track_allowed_keys = set((
-                'ok',
-                'time',
-                'follows',
-                'status_code',
-            ))
+            try:
+                allowed_keys = set((
+                    'type',
+                    'taskid',
+                    'project',
+                    'status',
+                    'url',
+                    'lastcrawltime',
+                    'updatetime',
+                    'track',
+                ))
+                track_allowed_keys = set((
+                    'ok',
+                    'time',
+                    'follows',
+                    'status_code',
+                ))
 
-            iters = [iter(x.active_tasks) for k, x in self.projects.items()
-                     if x and (k == project if project else True)]
-            tasks = [next(x, None) for x in iters]
-            result = []
+                iters = [iter(x.active_tasks) for k, x in self.projects.items()
+                        if x and (k == project if project else True)]
+                tasks = [next(x, None) for x in iters]
+                result = []
 
-            while len(result) < limit and tasks and not all(x is None for x in tasks):
-                updatetime, task = t = max(t for t in tasks if t)
-                i = tasks.index(t)
-                tasks[i] = next(iters[i], None)
-                for key in list(task):
-                    if key == 'track':
-                        for k in list(task[key].get('fetch', [])):
-                            if k not in track_allowed_keys:
-                                del task[key]['fetch'][k]
-                        for k in list(task[key].get('process', [])):
-                            if k not in track_allowed_keys:
-                                del task[key]['process'][k]
-                    if key in allowed_keys:
-                        continue
-                    del task[key]
-                result.append(t)
-            # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
-            # have no idea why
-            return json.loads(json.dumps(result))
+                while len(result) < limit and tasks and not all(x is None for x in tasks):
+                    updatetime, task = t = max(t for t in tasks if t)
+                    i = tasks.index(t)
+                    tasks[i] = next(iters[i], None)
+                    for key in list(task):
+                        if key == 'track':
+                            for k in list(task[key].get('fetch', [])):
+                                if k not in track_allowed_keys:
+                                    del task[key]['fetch'][k]
+                            for k in list(task[key].get('process', [])):
+                                if k not in track_allowed_keys:
+                                    del task[key]['process'][k]
+                        if key in allowed_keys:
+                            continue
+                        del task[key]
+                    result.append(t)
+                # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
+                # have no idea why
+                return json.loads(json.dumps(result))
+            except Exception as e:
+                logger.exception("Error in get_active_tasks: %s", e)
+                return []
         application.register_function(get_active_tasks, 'get_active_tasks')
 
         def get_queue_stats():
             """
             Get queue statistics
             """
-            result = {}
-            # Add task queue sizes
-            result['task_queue'] = self.task_queue.qsize() if hasattr(self.task_queue, 'qsize') else -1
-            result['task_queue_priority'] = self.task_queue_priority.qsize() if hasattr(self.task_queue_priority, 'qsize') else -1
-            result['result_queue'] = self.result_queue.qsize() if hasattr(self.result_queue, 'qsize') else -1
+            try:
+                result = {}
+                # Add task queue sizes
+                result['task_queue'] = self.task_queue.qsize() if hasattr(self.task_queue, 'qsize') else -1
+                result['task_queue_priority'] = self.task_queue_priority.qsize() if hasattr(self.task_queue_priority, 'qsize') else -1
+                result['result_queue'] = self.result_queue.qsize() if hasattr(self.result_queue, 'qsize') else -1
 
-            # Add processing queue sizes
-            if hasattr(self, 'status_queue'):
-                result['status_queue'] = self.status_queue.qsize() if hasattr(self.status_queue, 'qsize') else -1
+                # Add processing queue sizes
+                if hasattr(self, 'status_queue'):
+                    result['status_queue'] = self.status_queue.qsize() if hasattr(self.status_queue, 'qsize') else -1
 
-            # Add other queues if available
-            if hasattr(self, 'newtask_queue'):
-                result['newtask_queue'] = self.newtask_queue.qsize() if hasattr(self.newtask_queue, 'qsize') else -1
+                # Add other queues if available
+                if hasattr(self, 'newtask_queue'):
+                    result['newtask_queue'] = self.newtask_queue.qsize() if hasattr(self.newtask_queue, 'qsize') else -1
 
-            return result
+                return result
+            except Exception as e:
+                logger.exception("Error in get_queue_stats: %s", e)
+                return {}
         application.register_function(get_queue_stats, 'get_queue_stats')
 
         def get_projects_pause_status():
-            result = {}
-            for project_name, project in self.projects.items():
-                result[project_name] = project.paused
-            return result
+            try:
+                result = {}
+                for project_name, project in self.projects.items():
+                    result[project_name] = project.paused
+                return result
+            except Exception as e:
+                logger.exception("Error in get_projects_pause_status: %s", e)
+                return {}
         application.register_function(get_projects_pause_status, 'get_projects_pause_status')
 
         def webui_update():
-            return {
-                'pause_status': get_projects_pause_status(),
-                'counter': {
-                    '5m_time': dump_counter('5m_time', 'avg'),
-                    '5m': dump_counter('5m', 'sum'),
-                    '1h': dump_counter('1h', 'sum'),
-                    '1d': dump_counter('1d', 'sum'),
-                    'all': dump_counter('all', 'sum'),
-                },
-            }
+            try:
+                return {
+                    'pause_status': get_projects_pause_status(),
+                    'counter': {
+                        '5m_time': dump_counter('5m_time', 'avg'),
+                        '5m': dump_counter('5m', 'sum'),
+                        '1h': dump_counter('1h', 'sum'),
+                        '1d': dump_counter('1d', 'sum'),
+                        'all': dump_counter('all', 'sum'),
+                    },
+                }
+            except Exception as e:
+                logger.exception("Error in webui_update: %s", e)
+                return {'pause_status': {}, 'counter': {}}
         application.register_function(webui_update, 'webui_update')
 
         import tornado.wsgi
         import tornado.ioloop
         import tornado.httpserver
 
+        # Python 3.13 compatibility: use a separate IOLoop for XML-RPC
+        self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
         container = tornado.wsgi.WSGIContainer(application)
-        self.xmlrpc_ioloop = tornado.ioloop.IOLoop.current()
+
+        # In newer Tornado versions, io_loop is set differently
         self.xmlrpc_server = tornado.httpserver.HTTPServer(container)
         self.xmlrpc_server.listen(port=port, address=bind)
-        logger.info('scheduler.xmlrpc listening on %s:%s', bind, port)
-        self.xmlrpc_ioloop.start()
+
+        try:
+            logger.info('scheduler.xmlrpc listening on %s:%s', bind, port)
+            self.xmlrpc_ioloop.start()
+        except Exception as e:
+            logger.exception("Failed to start XML-RPC server: %s", e)
+            raise
 
     def on_request(self, task):
         if self.INQUEUE_LIMIT and len(self.projects[task['project']].task_queue) >= self.INQUEUE_LIMIT:

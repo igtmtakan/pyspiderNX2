@@ -9,7 +9,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}PySpider起動スクリプト${NC}"
+echo -e "${YELLOW}PySpider起動スクリプト - Redisモード${NC}"
 echo "=================================="
 
 # 既存のプロセスを終了
@@ -17,8 +17,6 @@ echo -e "${YELLOW}既存のプロセスを終了しています...${NC}"
 pkill -9 -f "python.*run.py" 2>/dev/null
 pkill -9 -f "python.*pyspider.run" 2>/dev/null
 pkill -9 -f "node.*puppeteer_fetcher.js" 2>/dev/null
-# PhantomJSは削除されたため、このコマンドは不要
-# pkill -9 -f "phantomjs" 2>/dev/null
 
 # ポート22222を使用しているプロセスを検索して終了
 echo -e "${YELLOW}ポート22222を使用しているプロセスを確認中...${NC}"
@@ -71,6 +69,16 @@ sleep 2
 
 echo -e "${GREEN}既存のプロセスを終了しました${NC}"
 
+# Redisが起動しているか確認
+echo -e "${YELLOW}Redisサーバーの状態を確認しています...${NC}"
+if ! redis-cli ping > /dev/null 2>&1; then
+    echo -e "${RED}Redisサーバーが起動していません。起動してください。${NC}"
+    echo -e "${YELLOW}例: sudo service redis-server start${NC}"
+    exit 1
+else
+    echo -e "${GREEN}Redisサーバーが起動しています${NC}"
+fi
+
 # Puppeteer Fetcherを起動
 echo -e "${YELLOW}Puppeteer Fetcherを起動しています...${NC}"
 ./start_puppeteer_fetcher.sh &
@@ -80,10 +88,12 @@ PUPPETEER_PID=$!
 sleep 5
 echo -e "${GREEN}Puppeteer Fetcherを起動しました${NC}"
 
-# PySpiderを起動
+# Redisモード用の設定
+echo -e "${YELLOW}Redisモードで起動します（メッセージキュー: redis://localhost:6379/0）${NC}"
+
+# PySpiderを起動（Redisモード）
 echo -e "${YELLOW}PySpiderを起動しています...${NC}"
-# Python 3.13対応のコマンドに変更
-python -m pyspider.run all &
+python -m pyspider.run --message-queue=redis://localhost:6379/0 all &
 PYSPIDER_PID=$!
 
 # 起動完了メッセージ

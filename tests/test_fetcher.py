@@ -204,7 +204,98 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertIn('teapot', response.text)
 
-    # PhantomJS tests have been removed as PhantomJS is deprecated
+    def test_70_puppeteer_url(self):
+        # Skip if puppeteer is not available
+        if not self.fetcher.puppeteer_endpoint:
+            raise unittest.SkipTest('no puppeteer endpoint')
+
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/get'
+        request['fetch']['fetch_type'] = 'puppeteer'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.save, request['fetch']['save'])
+        data = json.loads(response.doc('pre').text())
+        self.assertEqual(data['headers'].get('A'), 'b', response.content)
+        self.assertIn('c=d', data['headers'].get('Cookie'), response.content)
+        self.assertIn('a=b', data['headers'].get('Cookie'), response.content)
+
+    def test_75_puppeteer_robots(self):
+        # Skip if puppeteer is not available
+        if not self.fetcher.puppeteer_endpoint:
+            raise unittest.SkipTest('no puppeteer endpoint')
+
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/deny'
+        request['fetch']['fetch_type'] = 'puppeteer'
+        request['fetch']['robots_txt'] = True
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
+
+    def test_80_puppeteer_timeout(self):
+        # Skip if puppeteer is not available
+        if not self.fetcher.puppeteer_endpoint:
+            raise unittest.SkipTest('no puppeteer endpoint')
+
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/delay/5'
+        request['fetch']['fetch_type'] = 'puppeteer'
+        request['fetch']['timeout'] = 3
+        start_time = time.time()
+        result = self.fetcher.sync_fetch(request)
+        end_time = time.time()
+        self.assertGreater(end_time - start_time, 2)
+        self.assertLess(end_time - start_time, 5)
+        self.assertEqual(result['status_code'], 599)
+
+    def test_90_puppeteer_js_script(self):
+        # Skip if puppeteer is not available
+        if not self.fetcher.puppeteer_endpoint:
+            raise unittest.SkipTest('no puppeteer endpoint')
+
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/html'
+        request['fetch']['fetch_type'] = 'puppeteer'
+        request['fetch']['js_script'] = 'function() { document.write("binux") }'
+        result = self.fetcher.sync_fetch(request)
+        self.assertEqual(result['status_code'], 200)
+        self.assertIn('binux', result['content'])
+
+    def test_95_puppeteer_redirect(self):
+        # Skip if puppeteer is not available
+        if not self.fetcher.puppeteer_endpoint:
+            raise unittest.SkipTest('no puppeteer endpoint')
+
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/redirect-to?url=/get'
+        request['fetch']['fetch_type'] = 'puppeteer'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertIn('/get', response.url)
+
+    def test_100_js_to_puppeteer_redirect(self):
+        # Skip if puppeteer is not available
+        if not self.fetcher.puppeteer_endpoint:
+            raise unittest.SkipTest('no puppeteer endpoint')
+
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/get'
+        request['fetch']['fetch_type'] = 'js'  # This should be redirected to puppeteer
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        data = json.loads(response.doc('pre').text())
+        self.assertEqual(data['headers'].get('A'), 'b', response.content)
 
     def test_a110_dns_error(self):
         request = copy.deepcopy(self.sample_task_http)

@@ -9,7 +9,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}PySpider起動スクリプト${NC}"
+echo -e "${YELLOW}PySpider起動スクリプト - ローカルモード${NC}"
 echo "=================================="
 
 # 既存のプロセスを終了
@@ -17,8 +17,6 @@ echo -e "${YELLOW}既存のプロセスを終了しています...${NC}"
 pkill -9 -f "python.*run.py" 2>/dev/null
 pkill -9 -f "python.*pyspider.run" 2>/dev/null
 pkill -9 -f "node.*puppeteer_fetcher.js" 2>/dev/null
-# PhantomJSは削除されたため、このコマンドは不要
-# pkill -9 -f "phantomjs" 2>/dev/null
 
 # ポート22222を使用しているプロセスを検索して終了
 echo -e "${YELLOW}ポート22222を使用しているプロセスを確認中...${NC}"
@@ -80,9 +78,11 @@ PUPPETEER_PID=$!
 sleep 5
 echo -e "${GREEN}Puppeteer Fetcherを起動しました${NC}"
 
-# PySpiderを起動
+# ローカルモード用の設定
+echo -e "${YELLOW}ローカルモードで起動します（メッセージキューなし）${NC}"
+
+# PySpiderを起動（ローカルモード）
 echo -e "${YELLOW}PySpiderを起動しています...${NC}"
-# Python 3.13対応のコマンドに変更
 python -m pyspider.run all &
 PYSPIDER_PID=$!
 
