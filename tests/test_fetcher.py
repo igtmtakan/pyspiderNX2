@@ -62,7 +62,7 @@ class TestFetcher(unittest.TestCase):
         self.inqueue = Queue(10)
         self.outqueue = Queue(10)
         self.fetcher = Fetcher(self.inqueue, self.outqueue)
-        self.fetcher.phantomjs_proxy = '127.0.0.1:25555'
+        # PhantomJS has been removed as it is deprecated
         self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
         self.thread = utils.run_in_thread(self.fetcher.run)
@@ -70,13 +70,6 @@ class TestFetcher(unittest.TestCase):
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
         self.proxy = '127.0.0.1:14830'
-        try:
-            self.phantomjs = subprocess.Popen(['phantomjs',
-                os.path.join(os.path.dirname(__file__),
-                    '../pyspider/fetcher/phantomjs_fetcher.js'),
-                '25555'])
-        except OSError:
-            self.phantomjs = None
         time.sleep(0.5)
 
     @classmethod
@@ -86,16 +79,14 @@ class TestFetcher(unittest.TestCase):
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
-        if self.phantomjs:
-            self.phantomjs.kill()
-            self.phantomjs.wait()
+        # PhantomJS has been removed as it is deprecated
         self.rpc._quit()
         self.thread.join()
 
         assert not utils.check_port_open(5000)
         assert not utils.check_port_open(23333)
         assert not utils.check_port_open(24444)
-        assert not utils.check_port_open(25555)
+        # Port 25555 was used by PhantomJS which has been removed
         assert not utils.check_port_open(14887)
 
         time.sleep(1)
@@ -213,89 +204,7 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertIn('teapot', response.text)
 
-    def test_69_no_phantomjs(self):
-        phantomjs_proxy = self.fetcher.phantomjs_proxy
-        self.fetcher.phantomjs_proxy = None
-
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 501, result)
-
-        self.fetcher.phantomjs_proxy = phantomjs_proxy
-
-    def test_70_phantomjs_url(self):
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 200, result)
-        self.assertEqual(response.orig_url, request['url'])
-        self.assertEqual(response.save, request['fetch']['save'])
-        data = json.loads(response.doc('pre').text())
-        self.assertEqual(data['headers'].get('A'), 'b', response.content)
-        self.assertIn('c=d', data['headers'].get('Cookie'), response.content)
-        self.assertIn('a=b', data['headers'].get('Cookie'), response.content)
-
-    def test_75_phantomjs_robots(self):
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/deny'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        request['fetch']['robots_txt'] = True
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 403, result)
-
-    def test_80_phantomjs_timeout(self):
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/delay/5'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        request['fetch']['timeout'] = 3
-        start_time = time.time()
-        result = self.fetcher.sync_fetch(request)
-        end_time = time.time()
-        self.assertGreater(end_time - start_time, 2)
-        self.assertLess(end_time - start_time, 5)
-        self.assertEqual(result['status_code'], 599)
-        self.assertIn('js_script_result', result)
-
-    def test_90_phantomjs_js_script(self):
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/html'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        request['fetch']['js_script'] = 'function() { document.write("binux") }'
-        result = self.fetcher.sync_fetch(request)
-        self.assertEqual(result['status_code'], 200)
-        self.assertIn('binux', result['content'])
-
-    def test_a100_phantomjs_sharp_url(self):
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/pyspider/ajax.html'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        request['fetch']['headers']['User-Agent'] = 'pyspider-test'
-        result = self.fetcher.sync_fetch(request)
-        self.assertEqual(result['status_code'], 200)
-        self.assertNotIn('loading', result['content'])
-        self.assertIn('done', result['content'])
-        self.assertIn('pyspider-test', result['content'])
+    # PhantomJS tests have been removed as PhantomJS is deprecated
 
     def test_a110_dns_error(self):
         request = copy.deepcopy(self.sample_task_http)
@@ -398,21 +307,7 @@ class TestFetcher(unittest.TestCase):
 
         self.assertEqual(response.status_code, 403, result)
 
-    def test_zzzz_issue375(self):
-        phantomjs_proxy = self.fetcher.phantomjs_proxy
-        self.fetcher.phantomjs_proxy = '127.0.0.1:20000'
-
-        if not self.phantomjs:
-            raise unittest.SkipTest('no phantomjs')
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'phantomjs'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 599, result)
-
-        self.fetcher.phantomjs_proxy = phantomjs_proxy
+    # PhantomJS tests have been removed as PhantomJS is deprecated
 
 @unittest.skipIf(os.environ.get('IGNORE_SPLASH') or os.environ.get('IGNORE_ALL'), 'no splash server for test.')
 class TestSplashFetcher(unittest.TestCase):
@@ -459,7 +354,7 @@ class TestSplashFetcher(unittest.TestCase):
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
         self.proxy = socket.gethostbyname(socket.gethostname()) + ':14830'
-        
+
     @classmethod
     def tearDownClass(self):
         self.rpc("close")()

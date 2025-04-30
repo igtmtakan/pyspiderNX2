@@ -1,13 +1,7 @@
 FROM python:3.13
 MAINTAINER binux <roy@binux.me>
 
-# install phantomjs
-RUN mkdir -p /opt/phantomjs \
-        && cd /opt/phantomjs \
-        && wget -O phantomjs.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 \
-        && tar xavf phantomjs.tar.bz2 --strip-components 1 \
-        && ln -s /opt/phantomjs/bin/phantomjs /usr/local/bin/phantomjs \
-        && rm phantomjs.tar.bz2
+# PhantomJS has been removed as it is deprecated
 # Fix Error: libssl_conf.so: cannot open shared object file: No such file or directory
 ENV OPENSSL_CONF=/etc/ssl/
 
@@ -37,4 +31,4 @@ RUN ln -s /opt/node/node_modules ./node_modules
 #VOLUME ["/opt/pyspider"]
 ENTRYPOINT ["pyspider"]
 
-EXPOSE 5000 23333 24444 25555 22222
+EXPOSE 5000 23333 24444 22222

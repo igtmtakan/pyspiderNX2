@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  status      String   @default("STOPPED") // RUNNING, PAUSED, STOPPED
+  rate        Float    @default(1.0)
+  burst       Int      @default(10)
+  script      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+  results     Result[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  url         String
+  status      String   @default("PENDING") // PENDING, RUNNING, SUCCESS, FAILED
+  retries     Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   String
+  result      Result?
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  data        String   // JSON data
+  createdAt   DateTime @default(now())
+  task        Task     @relation(fields: [taskId], references: [id])
+  taskId      String   @unique
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   String
+}
+
+model User {
+  id          String   @id @default(uuid())
+  username    String   @unique
+  password    String
+  role        String   @default("user") // admin, user
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

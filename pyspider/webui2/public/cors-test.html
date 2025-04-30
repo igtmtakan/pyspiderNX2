@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test</h1>
+    <button id="testCors">Test CORS</button>
+    <button id="testLogin">Test Login</button>
+    <pre id="result"></pre>
+
+    <script>
+        document.getElementById('testCors').addEventListener('click', async () => {
+            const resultElement = document.getElementById('result');
+            try {
+                const response = await fetch('http://localhost:5001/api/cors-test', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+                console.error('CORS Test Error:', error);
+            }
+        });
+
+        document.getElementById('testLogin').addEventListener('click', async () => {
+            const resultElement = document.getElementById('result');
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin'
+                    })
+                });
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+                console.error('Login Test Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

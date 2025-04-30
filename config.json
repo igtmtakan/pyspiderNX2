@@ -1,7 +1,4 @@
 {
-    "phantomjs": {
-        "args": ["--ignore-ssl-errors=true"]
-    },
     "message_queue": "redis://localhost:6379/0",
     "webui": {
         "port": 5000

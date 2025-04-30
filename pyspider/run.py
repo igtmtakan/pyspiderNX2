@@ -459,54 +459,8 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     app.run(host=host, port=port)
 
 
-@cli.command()
-@click.option('--phantomjs-path', default='phantomjs', help='phantomjs path')
-@click.option('--port', default=25555, help='phantomjs port')
-@click.option('--auto-restart', default=False, help='auto restart phantomjs if crashed')
-@click.argument('args', nargs=-1)
-@click.pass_context
-def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
-    """
-    Run phantomjs fetcher if phantomjs is installed.
-    """
-    args = args or ctx.default_map and ctx.default_map.get('args', [])
-
-    import subprocess
-    g = ctx.obj
-    _quit = []
-    phantomjs_fetcher = os.path.join(
-        os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
-    cmd = [phantomjs_path,
-           # this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
-           #'--load-images=false',
-           '--ssl-protocol=any',
-           '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
-
-    try:
-        _phantomjs = subprocess.Popen(cmd)
-    except OSError:
-        logging.warning('phantomjs not found, continue running without it.')
-        return None
-
-    def quit(*args, **kwargs):
-        _quit.append(1)
-        _phantomjs.kill()
-        _phantomjs.wait()
-        logging.info('phantomjs exited.')
-
-    if not g.get('phantomjs_proxy'):
-        g['phantomjs_proxy'] = '127.0.0.1:%s' % port
-
-    phantomjs = utils.ObjectDict(port=port, quit=quit)
-    g.instances.append(phantomjs)
-    if g.get('testing_mode'):
-        return phantomjs
-
-    while True:
-        _phantomjs.wait()
-        if _quit or not auto_restart:
-            break
-        _phantomjs = subprocess.Popen(cmd)
+# PhantomJS command has been removed as it is deprecated
+# Use puppeteer command instead
 
 @cli.command()
 @click.option('--port', default=22222, help='puppeteer port')
@@ -578,14 +532,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     threads = []
 
     try:
-        # phantomjs
-        if not g.get('phantomjs_proxy'):
-            phantomjs_config = g.config.get('phantomjs', {})
-            phantomjs_config.setdefault('auto_restart', True)
-            threads.append(run_in(ctx.invoke, phantomjs, **phantomjs_config))
-            time.sleep(2)
-            if threads[-1].is_alive() and not g.get('phantomjs_proxy'):
-                g['phantomjs_proxy'] = '127.0.0.1:%s' % phantomjs_config.get('port', 25555)
+        # PhantomJS has been removed as it is deprecated
 
         # puppeteer
         if not g.get('puppeteer_proxy'):
@@ -780,13 +727,11 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 @cli.command()
 @click.option('-i', '--interactive', default=False, is_flag=True,
               help='enable interactive mode, you can choose crawl url.')
-@click.option('--phantomjs', 'enable_phantomjs', default=False, is_flag=True,
-              help='enable phantomjs, will spawn a subprocess for phantomjs')
 @click.option('--puppeteer', 'enable_puppeteer', default=False, is_flag=True,
               help='enable puppeteer, will spawn a subprocess for puppeteer')
 @click.argument('scripts', nargs=-1)
 @click.pass_context
-def one(ctx, interactive, enable_phantomjs, enable_puppeteer, scripts):
+def one(ctx, interactive, enable_puppeteer, scripts):
     """
     One mode not only means all-in-one, it runs every thing in one process over
     tornado.ioloop, for debug purpose
@@ -804,13 +749,8 @@ def one(ctx, interactive, enable_phantomjs, enable_puppeteer, scripts):
         if g.get('is_resultdb_default'):
             g['resultdb'] = None
 
-    if enable_phantomjs:
-        phantomjs_config = g.config.get('phantomjs', {})
-        phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
-        if phantomjs_obj:
-            g.setdefault('phantomjs_proxy', '127.0.0.1:%s' % phantomjs_obj.port)
-    else:
-        phantomjs_obj = None
+    # PhantomJS has been removed as it is deprecated
+    phantomjs_obj = None
 
     if enable_puppeteer:
         puppeteer_config = g.config.get('puppeteer', {})
@@ -853,8 +793,7 @@ def one(ctx, interactive, enable_phantomjs, enable_puppeteer, scripts):
         scheduler_obj.run()
     finally:
         scheduler_obj.quit()
-        if phantomjs_obj:
-            phantomjs_obj.quit()
+        # PhantomJS has been removed as it is deprecated
         if puppeteer_obj:
             puppeteer_obj.quit()
 
