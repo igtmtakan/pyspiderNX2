@@ -1,0 +1,25 @@
+{
+  "taskdb": "redis+taskdb://localhost:6379/1",
+  "projectdb": "redis+projectdb://localhost:6379/2",
+  "resultdb": "redis+resultdb://localhost:6379/3",
+  "message_queue": "redis://localhost:6379/0",
+  "webui": {
+    "port": 5000,
+    "username": "",
+    "password": "",
+    "need-auth": false
+  },
+  "fetcher": {
+    "xmlrpc-port": 24444,
+    "puppeteer-proxy": "http://localhost:22223"
+  },
+  "scheduler": {
+    "xmlrpc-port": 23333,
+    "threads": 4
+  },
+  "processor": {
+    "process-time-limit": 30
+  },
+  "result_worker": {
+  }
+}
