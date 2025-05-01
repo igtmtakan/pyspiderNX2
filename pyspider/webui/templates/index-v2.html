@@ -306,7 +306,7 @@
                         <v-col cols="12" md="3">
                             <v-card class="metric-card">
                                 <div class="metric-value" style="color: #4CAF50;">
-                                    ${ totalTasks }
+                                    [[ totalTasks ]]
                                 </div>
                                 <div class="metric-label">
                                     Total Tasks
@@ -316,7 +316,7 @@
                         <v-col cols="12" md="3">
                             <v-card class="metric-card">
                                 <div class="metric-value" style="color: #2196F3;">
-                                    ${ totalPending }
+                                    [[ totalPending ]]
                                 </div>
                                 <div class="metric-label">
                                     Pending Tasks
@@ -326,7 +326,7 @@
                         <v-col cols="12" md="3">
                             <v-card class="metric-card">
                                 <div class="metric-value" style="color: #4CAF50;">
-                                    ${ totalSuccess }
+                                    [[ totalSuccess ]]
                                 </div>
                                 <div class="metric-label">
                                     Successful Tasks
@@ -336,7 +336,7 @@
                         <v-col cols="12" md="3">
                             <v-card class="metric-card">
                                 <div class="metric-value" style="color: #F44336;">
-                                    ${ totalError }
+                                    [[ totalError ]]
                                 </div>
                                 <div class="metric-label">
                                     Failed Tasks
@@ -387,7 +387,7 @@
                                             <span class="input-group-text">Status</span>
                                             <select class="form-select" v-model="statusFilter">
                                                 <option v-for="option in statusOptions" :key="option.value" :value="option.value">
-                                                    ${ option.title }
+                                                    [[ option.title ]]
                                                 </option>
                                             </select>
                                         </div>
@@ -423,24 +423,24 @@
                                             <td>
                                                 <a :href="'/debug-v2/' + project.name" class="project-name">
                                                     <i :class="'mdi ' + getStatusIcon(project.status)" :style="{color: getStatusColor(project.status)}"></i>
-                                                    ${ project.name }
+                                                    [[ project.name ]]
                                                 </a>
                                             </td>
                                             <td>
                                                 <span v-if="project.group" class="group-badge">
                                                     <i class="mdi mdi-folder"></i>
-                                                    ${ project.group }
+                                                    [[ project.group ]]
                                                 </span>
                                                 <span v-else>-</span>
                                             </td>
                                             <td>
                                                 <span :class="'status-badge ' + project.status.toLowerCase()">
-                                                    ${ project.status }
+                                                    [[ project.status ]]
                                                 </span>
                                             </td>
                                             <td>
                                                 <span class="rate-burst-info">
-                                                    <span class="rate">${ project.rate || 1 }</span> / <span class="burst">${ project.burst || 3 }</span>
+                                                    <span class="rate">[[ project.rate || 1 ]]</span> / <span class="burst">[[ project.burst || 3 ]]</span>
                                                 </span>
                                             </td>
                                             <td style="width: 40%">
@@ -453,7 +453,7 @@
                                                                 class="btn btn-outline-secondary"
                                                                 :class="{ active: selectedTimeRange === option.value }"
                                                                 @click="selectedTimeRange = option.value">
-                                                                ${ option.label }
+                                                                [[ option.label ]]
                                                             </button>
                                                         </div>
                                                     </div>
@@ -501,11 +501,11 @@
                                                     </div>
                                                     <div class="progress-text">
                                                         <small>
-                                                            <span class="time-range-label">${ timeRangeOptions.find(o => o.value === selectedTimeRange).label }:</span>
-                                                            Pending: ${ getProgressCount(project.name, 'pending', selectedTimeRange) } /
-                                                            Active: ${ getActiveTasksCount(project.name) } /
-                                                            Success: ${ getProgressCount(project.name, 'success', selectedTimeRange) } /
-                                                            Error: ${ getProgressCount(project.name, 'failed', selectedTimeRange) }
+                                                            <span class="time-range-label">[[ timeRangeOptions.find(o => o.value === selectedTimeRange).label ]]:</span>
+                                                            Pending: [[ getProgressCount(project.name, 'pending', selectedTimeRange) ]] /
+                                                            Active: [[ getActiveTasksCount(project.name) ]] /
+                                                            Success: [[ getProgressCount(project.name, 'success', selectedTimeRange) ]] /
+                                                            Error: [[ getProgressCount(project.name, 'failed', selectedTimeRange) ]]
                                                         </small>
                                                     </div>
                                                 </div>
@@ -556,12 +556,12 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="page-info">
-                                                Showing ${ (currentPage - 1) * pageSize + 1 } to ${ Math.min(currentPage * pageSize, filteredProjects.length) } of ${ filteredProjects.length } projects
+                                                Showing [[ (currentPage - 1) * pageSize + 1 ]] to [[ Math.min(currentPage * pageSize, filteredProjects.length) ]] of [[ filteredProjects.length ]] projects
                                             </div>
                                         </div>
                                         <div class="col-md-6 text-end">
                                             <select class="form-select form-select-sm d-inline-block me-2" style="width: auto;" v-model="pageSize">
-                                                <option v-for="size in pageSizeOptions" :key="size" :value="size">${ size }</option>
+                                                <option v-for="size in pageSizeOptions" :key="size" :value="size">[[ size ]]</option>
                                             </select>
                                             <button class="btn btn-sm btn-outline-secondary" @click="prevPage" :disabled="currentPage === 1">
                                                 <i class="mdi mdi-chevron-left"></i> Prev
@@ -659,7 +659,7 @@
 
             <!-- Snackbar for notifications -->
             <v-snackbar v-model="snackbar.show" :color="snackbar.color" location="top" timeout="3000">
-                ${ snackbar.text }
+                [[ snackbar.text ]]
                 <template v-slot:actions>
                     <v-btn variant="text" @click="snackbar.show = false">Close</v-btn>
                 </template>
@@ -676,7 +676,7 @@
 
         // Vue.jsのデリミタを変更
         const app = createApp({
-            delimiters: ['${', '}'],
+            delimiters: ['[[', ']]'],
             data() {
                 return {
                     message: 'PySpider Dashboard',
@@ -858,40 +858,67 @@
 
                 // カウンターデータを取得するメソッド
                 fetchCounterData() {
-                    fetch('/counter')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            return response.json();
+                    try {
+                        // 絶対URLを使用して、CORSの問題を回避
+                        const url = new URL('/counter', window.location.origin);
+
+                        fetch(url.toString(), {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'same-origin',
+                            mode: 'cors',
+                            cache: 'no-cache'
                         })
-                        .then(data => {
-                            this.projectCounters = data;
-                            console.log('Counter data:', data);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching counter data:', error);
-                            // スケジューラーサービスが利用できない場合は、空のデータを設定
-                            // プロジェクトごとにデフォルトのカウンターデータを作成
-                            const defaultCounters = {};
-                            this.projects.forEach(project => {
-                                defaultCounters[project.name] = {
-                                    'all': {
-                                        'pending': 0,
-                                        'success': 0,
-                                        'retry': 0,
-                                        'failed': 0,
-                                        'task': 0,
-                                        'title': 'pending: 0, success: 0, retry: 0, failed: 0'
-                                    },
-                                    'time': {
-                                        'fetch_time': 0.1,
-                                        'process_time': 0.05
-                                    }
-                                };
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (Object.keys(data).length > 0) {
+                                    this.projectCounters = data;
+                                    console.log('Counter data:', data);
+                                } else {
+                                    console.warn('Empty counter data received, using defaults');
+                                    this.useDefaultCounters();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching counter data:', error);
+                                this.useDefaultCounters();
                             });
-                            this.projectCounters = defaultCounters;
-                        });
+                    } catch (error) {
+                        console.error('Exception in fetchCounterData:', error);
+                        this.useDefaultCounters();
+                    }
+                },
+
+                // デフォルトのカウンターデータを設定するヘルパーメソッド
+                useDefaultCounters() {
+                    // スケジューラーサービスが利用できない場合は、空のデータを設定
+                    // プロジェクトごとにデフォルトのカウンターデータを作成
+                    const defaultCounters = {};
+                    this.projects.forEach(project => {
+                        defaultCounters[project.name] = {
+                            'all': {
+                                'pending': 0,
+                                'success': 0,
+                                'retry': 0,
+                                'failed': 0,
+                                'task': 0,
+                                'title': 'pending: 0, success: 0, retry: 0, failed: 0'
+                            },
+                            'time': {
+                                'fetch_time': 0.1,
+                                'process_time': 0.05
+                            }
+                        };
+                    });
+                    this.projectCounters = defaultCounters;
                 },
 
                 // プロジェクトのカウンターデータを取得するメソッド
@@ -941,21 +968,38 @@
 
                 // アクティブなタスクを取得するメソッド
                 fetchActiveTasks() {
-                    fetch('/dashboard-active-tasks')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            return response.json();
+                    try {
+                        // 絶対URLを使用して、CORSの問題を回避
+                        const url = new URL('/dashboard-active-tasks', window.location.origin);
+
+                        fetch(url.toString(), {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'same-origin',
+                            mode: 'cors',
+                            cache: 'no-cache'
                         })
-                        .then(data => {
-                            this.activeTasks = data;
-                            console.log('Active tasks:', data);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching active tasks:', error);
-                            this.activeTasks = [];
-                        });
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                this.activeTasks = data;
+                                console.log('Active tasks:', data);
+                            })
+                            .catch(error => {
+                                console.error('Error fetching active tasks:', error);
+                                this.activeTasks = [];
+                            });
+                    } catch (error) {
+                        console.error('Exception in fetchActiveTasks:', error);
+                        this.activeTasks = [];
+                    }
                 },
 
                 // プロジェクトのアクティブなタスク数を取得するメソッド

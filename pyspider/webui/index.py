@@ -158,20 +158,32 @@ def project_update():
         return json.dumps({"status": "error", "message": "update error"}), 500, {'Content-Type': 'application/json'}
 
 
-@app.route('/dashboard-active-tasks')
+@app.route('/dashboard-active-tasks', methods=['GET', 'OPTIONS'])
 def dashboard_active_tasks():
     """ダッシュボード用のアクティブなタスクを取得するAPIエンドポイント"""
-    rpc = app.config['scheduler_rpc']
+    # CORSヘッダーを追加
+    headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+
+    # OPTIONSリクエストに対応
+    if request.method == 'OPTIONS':
+        return '', 200, headers
+
+    rpc = app.config.get('scheduler_rpc')
     if rpc is None:
         app.logger.warning('scheduler_rpc is None, returning empty active tasks data')
-        return json.dumps([])
+        return json.dumps([]), 200, headers
 
     try:
         tasks = rpc.get_active_tasks()
-        return json.dumps(tasks), 200, {'Content-Type': 'application/json'}
+        return json.dumps(tasks), 200, headers
     except Exception as e:
         app.logger.error('Error getting active tasks: %r', e)
-        return json.dumps([]), 200, {'Content-Type': 'application/json'}
+        return json.dumps([]), 200, headers
 
 
 @app.route('/queues')
@@ -190,12 +202,24 @@ def queues():
         return json.dumps({}), 200, {'Content-Type': 'application/json'}
 
 
-@app.route('/counter')
+@app.route('/counter', methods=['GET', 'OPTIONS'])
 def counter():
-    rpc = app.config['scheduler_rpc']
+    # CORSヘッダーを追加
+    headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+
+    # OPTIONSリクエストに対応
+    if request.method == 'OPTIONS':
+        return '', 200, headers
+
+    rpc = app.config.get('scheduler_rpc')
     if rpc is None:
         app.logger.warning('scheduler_rpc is None, returning empty counter data')
-        return json.dumps({})
+        return json.dumps({}), 200, headers
 
     result = {}
     try:
@@ -265,12 +289,12 @@ def counter():
         app.logger.debug('Final counter result: %s', result)
     except socket.error as e:
         app.logger.warning('connect to scheduler rpc error: %r', e)
-        return json.dumps({}), 200, {'Content-Type': 'application/json'}
+        return json.dumps({}), 200, headers
     except Exception as e:
         app.logger.error('Error in counter endpoint: %r', e)
-        return json.dumps({}), 200, {'Content-Type': 'application/json'}
+        return json.dumps({}), 200, headers
 
-    return json.dumps(result), 200, {'Content-Type': 'application/json'}
+    return json.dumps(result), 200, headers
 
 
 @app.route('/run', methods=['POST', 'GET'])

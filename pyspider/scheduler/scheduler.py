@@ -103,9 +103,9 @@ class Project(object):
         self.project_info = project_info
 
         self.name = project_info['name']
-        self.group = project_info['group']
-        self.db_status = project_info['status']
-        self.updatetime = project_info['updatetime']
+        self.group = project_info.get('group', '')  # デフォルト値として空の文字列を使用
+        self.db_status = project_info.get('status', '')  # statusも同様に処理
+        self.updatetime = project_info.get('updatetime', time.time())  # updatetimeも同様に処理
 
         md5sum = utils.md5string(project_info['script'])
         if self.md5sum != md5sum:

@@ -497,13 +497,24 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     except Exception as e:
         import logging
         logging.error("Failed to connect to scheduler RPC: %s", e)
-        # Create a dummy scheduler_rpc that logs errors
+        # Create a dummy scheduler_rpc that logs errors and returns appropriate default values
         class DummySchedulerRPC:
             def __getattr__(self, name):
                 def dummy_method(*args, **kwargs):
                     logging.error("Scheduler RPC not available. Method %s called with args: %s, kwargs: %s",
                                  name, args, kwargs)
-                    return None
+
+                    # Return appropriate default values for specific methods
+                    if name == 'webui_update':
+                        return {'counter': {}, 'time': {}, 'pause_status': {}}
+                    elif name == 'get_active_tasks':
+                        return []
+                    elif name == 'counter':
+                        return {'active': 0, 'success': 0, 'failed': 0, 'pending': 0}
+                    elif name == 'get_queue_stats':
+                        return {}
+                    else:
+                        return None
                 return dummy_method
         app.config['scheduler_rpc'] = DummySchedulerRPC()
 
