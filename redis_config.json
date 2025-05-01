@@ -11,7 +11,7 @@
   },
   "fetcher": {
     "xmlrpc-port": 24444,
-    "puppeteer-proxy": "http://localhost:22223"
+    "proxy": "http://localhost:22223"
   },
   "scheduler": {
     "xmlrpc-port": 23333,

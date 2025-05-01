@@ -80,6 +80,14 @@ def _connect_database(url):  # NOQA
             from .redis.taskdb import TaskDB
             return TaskDB(parsed.hostname, parsed.port,
                           int(parsed.path.strip('/') or 0))
+        elif dbtype == 'projectdb':
+            from .redis.projectdb import ProjectDB
+            return ProjectDB(parsed.hostname, parsed.port,
+                          int(parsed.path.strip('/') or 0))
+        elif dbtype == 'resultdb':
+            from .redis.resultdb import ResultDB
+            return ResultDB(parsed.hostname, parsed.port,
+                          int(parsed.path.strip('/') or 0))
         else:
             raise LookupError('not supported dbtype: %s', dbtype)
     elif engine == 'local':
